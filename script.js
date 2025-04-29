@@ -49,19 +49,19 @@ function drawEmojis() {
   // Add new hearts and emojis if the respective filters are active
   if (isHeartActive) {
     hearts.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
+      x: Math.random() * canvas.width,  // Position the hearts randomly across the screen
+      y: canvas.height,                 // Start from the bottom
       size: 30,
-      speed: Math.random() * 2 + 1
+      speed: Math.random() * 2 + 1      // Random speed for each heart
     });
   }
 
   if (isEmojiActive) {
     emojis.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
+      x: Math.random() * canvas.width,  // Position the emojis randomly across the screen
+      y: canvas.height,                 // Start from the bottom
       size: 30,
-      speed: Math.random() * 2 + 1
+      speed: Math.random() * 2 + 1      // Random speed for each emoji
     });
   }
 
@@ -69,9 +69,9 @@ function drawEmojis() {
   hearts.forEach((heart, index) => {
     ctx.font = `${heart.size}px Arial`;
     ctx.fillText('❤️', heart.x, heart.y);
-    heart.y += heart.speed;
+    heart.y -= heart.speed;  // Move hearts upwards
 
-    if (heart.y > canvas.height) {
+    if (heart.y < 0) {
       hearts.splice(index, 1); // Remove hearts that go off-screen
     }
   });
@@ -80,9 +80,9 @@ function drawEmojis() {
   emojis.forEach((emoji, index) => {
     ctx.font = `${emoji.size}px Arial`;
     ctx.fillText('💕', emoji.x, emoji.y);
-    emoji.y += emoji.speed;
+    emoji.y -= emoji.speed;  // Move emojis upwards
 
-    if (emoji.y > canvas.height) {
+    if (emoji.y < 0) {
       emojis.splice(index, 1); // Remove emojis that go off-screen
     }
   });
