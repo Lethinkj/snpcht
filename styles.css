@@ -10,8 +10,8 @@ body, html {
 
 .camera-container {
   position: relative;
-  width: 300px; /* Fixed size */
-  height: 300px; /* Fixed size */
+  width: 300px; /* Fixed size for square camera */
+  height: 300px; /* Fixed size for square camera */
 }
 
 .video-container {
@@ -34,6 +34,30 @@ body, html {
   width: 100%;
   height: 100%;
   pointer-events: none; /* Canvas should not block user interaction */
+}
+
+#filtersLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Allow interaction with the video */
+  z-index: 1;
+}
+
+#heartFilter {
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  display: none;
+}
+
+#dogFaceFilter {
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  display: none;
 }
 
 .controls {
