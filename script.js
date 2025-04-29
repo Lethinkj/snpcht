@@ -27,15 +27,18 @@ video.addEventListener('play', () => {
 
 // Function to draw the video frame on the canvas
 function drawFrame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-  applyFilters(); // Apply the selected filter
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas before redrawing
+  applyFilters(); // Apply the selected filter to the canvas
+
+  // Draw video frame
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height); // Draw video on canvas
   
-  // Draw any overlay images (heart, dog face)
+  // Draw heart if effect is active
   if (isFlyingHeart) {
     drawFlyingHeart();
   }
   
+  // Draw dog face if effect is active
   if (isDogFace) {
     applyDogFaceFilter();
   }
@@ -51,7 +54,7 @@ const dogFaceButton = document.getElementById("dogFace");
 
 let currentLens = null;
 let isFlyingHeart = false;
-let heartPosition = { x: 150, y: 50 };
+let heartPosition = { x: 150, y: 50 };  // Starting position of the heart
 let isDogFace = false;
 
 // Lens filters (grayscale, sepia)
@@ -90,23 +93,27 @@ function applyFilters() {
   }
 }
 
-// Flying Heart Animation
+// Flying Heart Animation (Random movement)
 function animateHeart() {
   if (!isFlyingHeart) return; // Stop if flying heart effect is turned off
+  
+  // Random movement of the heart
   heartPosition.x = Math.random() * canvas.width;
   heartPosition.y = Math.random() * (canvas.height / 2); // Keep heart in the upper half of the screen
-  setTimeout(animateHeart, 1000); // Move heart every second
+  
+  // Keep updating position of the heart
+  setTimeout(animateHeart, 1000); // Update heart every second
 }
 
 // Draw the heart on the canvas
 function drawFlyingHeart() {
-  ctx.drawImage(heartImage, heartPosition.x, heartPosition.y, 50, 50); // Draw heart image
+  ctx.drawImage(heartImage, heartPosition.x, heartPosition.y, 50, 50); // Draw heart image on canvas
 }
 
-// Dog Face Filter (fixed position)
+// Dog Face Filter (Positioned on top of the user's face)
 function applyDogFaceFilter() {
   ctx.filter = "none"; // Remove any previous filters
-  ctx.drawImage(dogImage, 100, 100, 100, 100); // Draw dog face at fixed position (100, 100)
+  ctx.drawImage(dogImage, 100, 100, 100, 100); // Draw dog face at fixed position (for simplicity)
 }
 
 // Capture functionality
