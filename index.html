@@ -19,16 +19,18 @@
       <button id="lens1">Lens 1 (Grayscale)</button>
       <button id="lens2">Lens 2 (Sepia)</button>
       <button id="flyingHeart">Flying Heart</button>
-      <button id="dogFace">Dog Face</button>
+      <button id="heartWithLove">💕 Filter</button>
       <button id="capture">Capture</button>
     </div>
 
-    <!-- Filters (heart emoji and dog face) -->
+    <!-- Filters (hearts and 💕 emoji) -->
     <div id="filtersLayer">
       <div id="heartFilter" style="font-size: 50px; position: absolute; display: none;">❤️</div>
-      <img id="dogFaceFilter" src="https://upload.wikimedia.org/wikipedia/commons/1/1f/2016_Dog_Face_Emoji.png" alt="Dog Face Filter" style="position: absolute; display: none;" />
+      <div id="loveEmojiFilter" style="font-size: 50px; position: absolute; display: none;">💕</div>
     </div>
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
