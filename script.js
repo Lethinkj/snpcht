@@ -3,15 +3,11 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-// Heart Image
-const heartImage = new Image();
-heartImage.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Red_Heart_Emoji.png/500px-Red_Heart_Emoji.png"; // Heart emoji image
+// Access filter elements
+const heartFilter = document.getElementById("heartFilter");
+const dogFaceFilter = document.getElementById("dogFaceFilter");
 
-// Dog Face Image
-const dogImage = new Image();
-dogImage.src = "https://upload.wikimedia.org/wikipedia/commons/1/1f/2016_Dog_Face_Emoji.png"; // Dog face emoji
-
-// Start video feed
+// Start video stream
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => {
     video.srcObject = stream;
@@ -23,24 +19,27 @@ navigator.mediaDevices.getUserMedia({ video: true })
 
 let currentLens = null;
 let isFlyingHeart = false;
-let heartPosition = { x: 150, y: 50 }; // Initial heart position
+let heartPosition = { x: 150, y: 50 }; // Initial position of heart
 let isDogFace = false;
 
-// Add event listeners for buttons
+// Lens Buttons
 document.getElementById("lens1").addEventListener("click", () => applyLens(1));
 document.getElementById("lens2").addEventListener("click", () => applyLens(2));
+
+// Filter Buttons
 document.getElementById("flyingHeart").addEventListener("click", toggleHeart);
 document.getElementById("dogFace").addEventListener("click", toggleDogFace);
+
+// Capture Button
 document.getElementById("capture").addEventListener("click", captureImage);
 
-// Initialize canvas when the video starts playing
+// Set canvas size on video play
 video.addEventListener('play', () => {
   canvas.width = 300;
   canvas.height = 300;
   drawFrame();
 });
 
-// Lens application (Grayscale / Sepia)
 function applyLens(lensId) {
   currentLens = lensId;
 }
@@ -55,31 +54,35 @@ function applyFilters() {
   }
 }
 
-// Draw video and effects continuously
+// Draw the video and effects continuously
 function drawFrame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frame
 
-  // Apply filters
+  // Apply the selected lens filter
   applyFilters();
 
   // Draw video on canvas
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // Draw heart filter if active
-  if (isFlyingHeart) {
-    drawFlyingHeart();
-  }
-
-  // Draw dog face filter if active
-  if (isDogFace) {
-    drawDogFaceFilter();
-  }
-
-  // Call drawFrame repeatedly to update the canvas
+  // Call drawFrame repeatedly to keep the video updated
   requestAnimationFrame(drawFrame);
+
+  // Update heart filter position if active
+  if (isFlyingHeart) {
+    updateHeartPosition();
+  }
+
+  // Update dog face filter visibility
+  if (isDogFace) {
+    dogFaceFilter.style.display = 'block';
+    dogFaceFilter.style.top = "100px";
+    dogFaceFilter.style.left = "100px";
+  } else {
+    dogFaceFilter.style.display = 'none';
+  }
 }
 
-// Toggle flying heart animation
+// Toggle heart animation
 function toggleHeart() {
   isFlyingHeart = !isFlyingHeart;
   if (isFlyingHeart) {
@@ -87,33 +90,35 @@ function toggleHeart() {
   }
 }
 
-// Animate the heart randomly on the canvas
+// Randomize heart position
 function animateHeart() {
   if (!isFlyingHeart) return;
   heartPosition.x = Math.random() * canvas.width;
-  heartPosition.y = Math.random() * (canvas.height / 2); // Top half of the canvas
+  heartPosition.y = Math.random() * (canvas.height / 2); // Random position in the top half
+  heartFilter.style.left = heartPosition.x + 'px';
+  heartFilter.style.top = heartPosition.y + 'px';
+
   setTimeout(animateHeart, 1000); // Move heart every second
 }
 
-// Draw the heart at its current position
-function drawFlyingHeart() {
-  ctx.drawImage(heartImage, heartPosition.x, heartPosition.y, 50, 50); // Size of heart
+// Update heart position
+function updateHeartPosition() {
+  heartFilter.style.display = 'block';
+  heartFilter.style.left = heartPosition.x + 'px';
+  heartFilter.style.top = heartPosition.y + 'px';
 }
 
 // Toggle dog face filter
 function toggleDogFace() {
   isDogFace = !isDogFace;
   if (isDogFace) {
-    drawDogFaceFilter();
+    dogFaceFilter.style.display = 'block';
+  } else {
+    dogFaceFilter.style.display = 'none';
   }
 }
 
-// Draw dog face filter on canvas at a fixed position
-function drawDogFaceFilter() {
-  ctx.drawImage(dogImage, 100, 100, 100, 100); // Fixed position for dog face filter
-}
-
-// Capture image from canvas
+// Capture image and download
 function captureImage() {
   const dataUrl = canvas.toDataURL("image/png"); // Capture canvas as image
   const link = document.createElement('a');
