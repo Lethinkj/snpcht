@@ -93,17 +93,20 @@ function toggleHeart() {
 // Randomize heart position
 function animateHeart() {
   if (!isFlyingHeart) return;
+
+  // Randomize the position of the heart emoji on the screen
   heartPosition.x = Math.random() * canvas.width;
   heartPosition.y = Math.random() * (canvas.height / 2); // Random position in the top half
+
   heartFilter.style.left = heartPosition.x + 'px';
   heartFilter.style.top = heartPosition.y + 'px';
+  heartFilter.style.display = 'block';
 
   setTimeout(animateHeart, 1000); // Move heart every second
 }
 
 // Update heart position
 function updateHeartPosition() {
-  heartFilter.style.display = 'block';
   heartFilter.style.left = heartPosition.x + 'px';
   heartFilter.style.top = heartPosition.y + 'px';
 }
