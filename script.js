@@ -12,16 +12,16 @@ navigator.mediaDevices.getUserMedia({ video: true })
     console.log("Error accessing camera: ", err);
   });
 
-// Adjust canvas size to match video container size
+// Adjust canvas size to match the fixed square size
 video.addEventListener('play', () => {
-  canvas.width = 300;  // Fixed width
-  canvas.height = 300; // Fixed height
+  canvas.width = 300;  // Fixed width for square canvas
+  canvas.height = 300; // Fixed height for square canvas
   drawFrame();
 });
 
-// Function to draw the video frame on canvas
+// Function to draw the video frame on the canvas
 function drawFrame() {
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height); // Draw video on canvas
   requestAnimationFrame(drawFrame);  // Keep drawing the next frame
 }
 
@@ -58,8 +58,9 @@ setInterval(applyFilters, 100);
 const captureButton = document.getElementById("capture");
 
 captureButton.addEventListener("click", () => {
+  // Convert canvas to an image (base64 string)
   const imageData = canvas.toDataURL("image/png");
-  downloadImage(imageData, 'snapshot.png');
+  downloadImage(imageData, 'snapshot.png'); // Trigger download
 });
 
 // Download captured image
