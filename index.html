@@ -8,11 +8,15 @@
 </head>
 <body>
   <div class="camera-container">
-    <video id="video" autoplay></video>
-    <canvas id="canvas"></canvas>
+    <!-- Square video container -->
+    <div class="video-container">
+      <video id="video" autoplay></video>
+      <canvas id="canvas"></canvas>
+    </div>
+    <!-- Controls for Lens and Capture -->
     <div class="controls">
-      <button class="lens" id="lens1">Lens 1</button>
-      <button class="lens" id="lens2">Lens 2</button>
+      <button class="lens" id="lens1">Lens 1 (Grayscale)</button>
+      <button class="lens" id="lens2">Lens 2 (Sepia)</button>
       <button id="capture" class="capture-button">Capture</button>
     </div>
   </div>
