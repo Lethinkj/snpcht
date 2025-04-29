@@ -12,15 +12,24 @@ body, html {
   position: relative;
   width: 100%;
   height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.video-container {
+  position: relative;
+  width: 300px;   /* Fixed width for square */
+  height: 300px;  /* Fixed height for square */
+  overflow: hidden;
 }
 
 #video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* Ensures the video fills the square container */
   position: absolute;
-  top: 0;
-  left: 0;
 }
 
 #canvas {
@@ -29,13 +38,14 @@ body, html {
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Allow interaction with the video underneath */
+  pointer-events: none; /* Make canvas non-interactive */
 }
 
 .controls {
   position: absolute;
   bottom: 20px;
-  left: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 10;
 }
 
@@ -53,5 +63,5 @@ body, html {
 }
 
 .capture-button {
-  background: rgba(255, 0, 0, 0.7); /* Red button for Capture */
+  background: rgba(255, 0, 0, 0.7); /* Red for Capture */
 }
