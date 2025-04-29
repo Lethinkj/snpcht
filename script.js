@@ -5,86 +5,91 @@ const ctx = canvas.getContext("2d");
 
 // Access filter elements
 const heartFilter = document.getElementById("heartFilter");
-const dogFaceFilter = document.getElementById("dogFaceFilter");
+const loveEmojiFilter = document.getElementById("loveEmojiFilter");
 
-// Array to hold multiple hearts
+// Array to hold hearts and settings
 let hearts = [];
+let isFlyingHeart = false;
+let isLoveEmoji = false;
+let detectedFace = null;
+
+// Load face-api.js models
+Promise.all([
+  faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
+  faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+  faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+]).then(startVideo);
 
 // Start video stream
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => {
-    video.srcObject = stream;
-    video.play();
-  })
-  .catch(err => {
-    console.log("Error accessing camera: ", err);
-  });
+function startVideo() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+      video.play();
+    })
+    .catch(err => {
+      console.log("Error accessing camera: ", err);
+    });
+}
 
-let currentLens = null;
-let isFlyingHeart = false;
-let isDogFace = false;
-
-// Lens Buttons
-document.getElementById("lens1").addEventListener("click", () => applyLens(1));
-document.getElementById("lens2").addEventListener("click", () => applyLens(2));
-
-// Filter Buttons
-document.getElementById("flyingHeart").addEventListener("click", toggleHearts);
-document.getElementById("dogFace").addEventListener("click", toggleDogFace);
-
-// Capture Button
-document.getElementById("capture").addEventListener("click", captureImage);
-
-// Set canvas size on video play
-video.addEventListener('play', () => {
-  canvas.width = 300;
-  canvas.height = 300;
-  drawFrame();
+video.addEventListener("play", () => {
+  canvas.width = video.width;
+  canvas.height = video.height;
+  detectFace();
 });
 
-function applyLens(lensId) {
-  currentLens = lensId;
-}
-
-function applyFilters() {
-  if (currentLens === 1) {
-    ctx.filter = "grayscale(100%)";
-  } else if (currentLens === 2) {
-    ctx.filter = "sepia(100%)";
+// Detect face using face-api.js
+async function detectFace() {
+  const detections = await faceapi.detectAllFaces(video).withFaceLandmarks();
+  
+  if (detections.length > 0) {
+    detectedFace = detections[0].detection;
   } else {
-    ctx.filter = "none";  // Default - No filter
+    detectedFace = null;
   }
+
+  requestAnimationFrame(detectFace);
+  drawFrame();
 }
 
-// Draw the video and effects continuously
+// Draw video and filter effects continuously
 function drawFrame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frame
-
-  // Apply the selected lens filter
-  applyFilters();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw video on canvas
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-  // Call drawFrame repeatedly to keep the video updated
-  requestAnimationFrame(drawFrame);
-
   // Update hearts positions if flying
-  if (isFlyingHeart) {
-    moveHearts();
+  if (isFlyingHeart && detectedFace) {
+    moveHearts(detectedFace);
   }
 
-  // Update dog face filter visibility
-  if (isDogFace) {
-    dogFaceFilter.style.display = 'block';
-    dogFaceFilter.style.top = "100px";
-    dogFaceFilter.style.left = "100px";
+  // Draw hearts above the head if active
+  hearts.forEach(heart => {
+    ctx.font = '30px Arial';
+    ctx.fillText(heart.emoji, heart.x, heart.y);
+  });
+
+  // Show love emoji filter
+  if (isLoveEmoji && detectedFace) {
+    loveEmojiFilter.style.display = 'block';
+    loveEmojiFilter.style.left = detectedFace.box.x + detectedFace.box.width / 2 - 25 + 'px';
+    loveEmojiFilter.style.top = detectedFace.box.y - 40 + 'px';
   } else {
-    dogFaceFilter.style.display = 'none';
+    loveEmojiFilter.style.display = 'none';
   }
 }
 
 // Toggle flying hearts
+document.getElementById("flyingHeart").addEventListener("click", toggleHearts);
+
+// Toggle love emoji filter
+document.getElementById("heartWithLove").addEventListener("click", toggleLoveEmoji);
+
+// Capture image and download
+document.getElementById("capture").addEventListener("click", captureImage);
+
+// Toggle the heart filter on and off
 function toggleHearts() {
   isFlyingHeart = !isFlyingHeart;
   if (isFlyingHeart) {
@@ -94,49 +99,40 @@ function toggleHearts() {
   }
 }
 
-// Create multiple hearts above the heads
+// Create multiple hearts above the head
 function createHearts() {
-  // Create a set of heart emojis at random positions
-  for (let i = 0; i < 10; i++) {  // Generate 10 hearts
+  if (!detectedFace) return;
+  // Create a set of hearts floating above the face
+  for (let i = 0; i < 5; i++) { // 5 hearts
     hearts.push({
-      x: Math.random() * canvas.width, // Random x position
-      y: Math.random() * 100,  // Random y position (above the head)
-      speedX: (Math.random() - 0.5) * 2, // Random horizontal movement speed
-      speedY: (Math.random() - 0.5) * 2, // Random vertical movement speed
+      x: detectedFace.box.x + Math.random() * detectedFace.box.width,
+      y: detectedFace.box.y - 50 - Math.random() * 30,  // Above the head
+      speedX: (Math.random() - 0.5) * 3,
+      speedY: (Math.random() - 0.5) * 3,
       emoji: '❤️'
     });
   }
 }
 
-// Move hearts randomly
-function moveHearts() {
+// Move hearts randomly above the head
+function moveHearts(face) {
   hearts.forEach(heart => {
-    // Move the heart
     heart.x += heart.speedX;
     heart.y += heart.speedY;
 
-    // Bounce the hearts off the edges of the canvas
-    if (heart.x <= 0 || heart.x >= canvas.width) {
+    // Bounce hearts off the canvas edges
+    if (heart.x <= face.box.x || heart.x >= face.box.x + face.box.width) {
       heart.speedX *= -1;
     }
-    if (heart.y <= 0 || heart.y >= 100) {  // Only above the head
+    if (heart.y <= face.box.y || heart.y >= face.box.y - 40) { // Prevent hearts going too far down
       heart.speedY *= -1;
     }
-
-    // Draw the heart on the canvas
-    ctx.font = '30px Arial';
-    ctx.fillText(heart.emoji, heart.x, heart.y);
   });
 }
 
-// Toggle dog face filter
-function toggleDogFace() {
-  isDogFace = !isDogFace;
-  if (isDogFace) {
-    dogFaceFilter.style.display = 'block';
-  } else {
-    dogFaceFilter.style.display = 'none';
-  }
+// Toggle love emoji filter
+function toggleLoveEmoji() {
+  isLoveEmoji = !isLoveEmoji;
 }
 
 // Capture image and download
