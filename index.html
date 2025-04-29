@@ -8,13 +8,10 @@
 </head>
 <body>
   <div class="camera-container">
-    <!-- Video container for the camera -->
     <div class="video-container">
       <video id="video" autoplay></video>
       <canvas id="canvas"></canvas>
     </div>
-
-    <!-- Filters (buttons) and capture button -->
     <div class="controls">
       <button id="lens1">Lens 1 (Grayscale)</button>
       <button id="lens2">Lens 2 (Sepia)</button>
@@ -22,14 +19,12 @@
       <button id="dogFace">Dog Face</button>
       <button id="capture">Capture</button>
     </div>
-
-    <!-- Filter layer for flying heart and dog face -->
     <div id="filtersLayer">
+      <!-- Corrected URLs for images -->
       <img id="heartFilter" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Red_Heart_Emoji.png/500px-Red_Heart_Emoji.png" alt="Heart Filter" />
       <img id="dogFaceFilter" src="https://upload.wikimedia.org/wikipedia/commons/1/1f/2016_Dog_Face_Emoji.png" alt="Dog Face Filter" />
     </div>
   </div>
-
   <script src="script.js"></script>
 </body>
 </html>
