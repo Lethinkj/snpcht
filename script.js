@@ -7,6 +7,9 @@ const ctx = canvas.getContext("2d");
 const heartFilter = document.getElementById("heartFilter");
 const dogFaceFilter = document.getElementById("dogFaceFilter");
 
+// Array to hold multiple hearts
+let hearts = [];
+
 // Start video stream
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => {
@@ -19,7 +22,6 @@ navigator.mediaDevices.getUserMedia({ video: true })
 
 let currentLens = null;
 let isFlyingHeart = false;
-let heartPosition = { x: 150, y: 50 }; // Initial position of heart
 let isDogFace = false;
 
 // Lens Buttons
@@ -27,7 +29,7 @@ document.getElementById("lens1").addEventListener("click", () => applyLens(1));
 document.getElementById("lens2").addEventListener("click", () => applyLens(2));
 
 // Filter Buttons
-document.getElementById("flyingHeart").addEventListener("click", toggleHeart);
+document.getElementById("flyingHeart").addEventListener("click", toggleHearts);
 document.getElementById("dogFace").addEventListener("click", toggleDogFace);
 
 // Capture Button
@@ -67,9 +69,9 @@ function drawFrame() {
   // Call drawFrame repeatedly to keep the video updated
   requestAnimationFrame(drawFrame);
 
-  // Update heart filter position if active
+  // Update hearts positions if flying
   if (isFlyingHeart) {
-    updateHeartPosition();
+    moveHearts();
   }
 
   // Update dog face filter visibility
@@ -82,33 +84,49 @@ function drawFrame() {
   }
 }
 
-// Toggle heart animation
-function toggleHeart() {
+// Toggle flying hearts
+function toggleHearts() {
   isFlyingHeart = !isFlyingHeart;
   if (isFlyingHeart) {
-    animateHeart();
+    createHearts();
+  } else {
+    hearts = [];  // Stop flying hearts when toggled off
   }
 }
 
-// Randomize heart position
-function animateHeart() {
-  if (!isFlyingHeart) return;
-
-  // Randomize the position of the heart emoji on the screen
-  heartPosition.x = Math.random() * canvas.width;
-  heartPosition.y = Math.random() * (canvas.height / 2); // Random position in the top half
-
-  heartFilter.style.left = heartPosition.x + 'px';
-  heartFilter.style.top = heartPosition.y + 'px';
-  heartFilter.style.display = 'block';
-
-  setTimeout(animateHeart, 1000); // Move heart every second
+// Create multiple hearts above the heads
+function createHearts() {
+  // Create a set of heart emojis at random positions
+  for (let i = 0; i < 10; i++) {  // Generate 10 hearts
+    hearts.push({
+      x: Math.random() * canvas.width, // Random x position
+      y: Math.random() * 100,  // Random y position (above the head)
+      speedX: (Math.random() - 0.5) * 2, // Random horizontal movement speed
+      speedY: (Math.random() - 0.5) * 2, // Random vertical movement speed
+      emoji: '❤️'
+    });
+  }
 }
 
-// Update heart position
-function updateHeartPosition() {
-  heartFilter.style.left = heartPosition.x + 'px';
-  heartFilter.style.top = heartPosition.y + 'px';
+// Move hearts randomly
+function moveHearts() {
+  hearts.forEach(heart => {
+    // Move the heart
+    heart.x += heart.speedX;
+    heart.y += heart.speedY;
+
+    // Bounce the hearts off the edges of the canvas
+    if (heart.x <= 0 || heart.x >= canvas.width) {
+      heart.speedX *= -1;
+    }
+    if (heart.y <= 0 || heart.y >= 100) {  // Only above the head
+      heart.speedY *= -1;
+    }
+
+    // Draw the heart on the canvas
+    ctx.font = '30px Arial';
+    ctx.fillText(heart.emoji, heart.x, heart.y);
+  });
 }
 
 // Toggle dog face filter
