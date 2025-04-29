@@ -32,14 +32,14 @@ body, html {
   pointer-events: none; /* Allow interaction with the video underneath */
 }
 
-.lenses {
+.controls {
   position: absolute;
-  top: 20px;
+  bottom: 20px;
   left: 20px;
   z-index: 10;
 }
 
-.lens {
+.lens, .capture-button {
   background: rgba(0, 0, 0, 0.5);
   color: white;
   padding: 10px 20px;
@@ -48,6 +48,10 @@ body, html {
   cursor: pointer;
 }
 
-.lens:hover {
+.lens:hover, .capture-button:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+.capture-button {
+  background: rgba(255, 0, 0, 0.7); /* Red button for Capture */
 }
