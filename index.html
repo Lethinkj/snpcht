@@ -3,32 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snapchat Camera with Filters</title>
+  <title>Camera with Filters</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="camera-container">
-    <!-- Video container for the camera -->
-    <div class="video-container">
-      <video id="video" autoplay></video>
-      <canvas id="canvas"></canvas>
-    </div>
 
-    <!-- Controls for filters -->
-    <div class="controls">
-      <button id="flyingHeart">Flying Hearts</button>
-      <button id="heartWithLove">💕 Filter</button>
-      <button id="capture">Capture</button>
-    </div>
+  <h1>Camera with Filters</h1>
 
-    <!-- Filters (hearts and 💕 emoji) -->
-    <div id="filtersLayer">
-      <div id="heartFilter" style="font-size: 50px; position: absolute; display: none;">❤️</div>
-      <div id="loveEmojiFilter" style="font-size: 50px; position: absolute; display: none;">💕</div>
-    </div>
+  <!-- Video element to display camera feed -->
+  <video id="video" width="300" height="300" autoplay></video>
+
+  <!-- Buttons for filters -->
+  <div class="controls">
+    <button id="heartFilterBtn">❤️ Flying Hearts</button>
+    <button id="emojiFilterBtn">💕 Love Emoji</button>
   </div>
 
+  <!-- Script files -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
   <script src="script.js"></script>
+
 </body>
 </html>
