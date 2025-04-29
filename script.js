@@ -1,13 +1,10 @@
-// Access video and canvas elements
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-// Access filter elements
 const heartFilter = document.getElementById("heartFilter");
 const loveEmojiFilter = document.getElementById("loveEmojiFilter");
 
-// Array to hold hearts and settings
 let hearts = [];
 let isFlyingHeart = false;
 let isLoveEmoji = false;
