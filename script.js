@@ -53,3 +53,19 @@ function applyFilters() {
 
 // Keep applying filter while video is playing
 setInterval(applyFilters, 100);
+
+// Capture functionality
+const captureButton = document.getElementById("capture");
+
+captureButton.addEventListener("click", () => {
+  const imageData = canvas.toDataURL("image/png");
+  downloadImage(imageData, 'snapshot.png');
+});
+
+// Download captured image
+function downloadImage(data, filename) {
+  const a = document.createElement('a');
+  a.href = data;
+  a.download = filename;
+  a.click();
+}
