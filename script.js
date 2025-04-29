@@ -1,31 +1,28 @@
 const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-// Function to start the camera
-function startCamera() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(function(stream) {
-      video.srcObject = stream;
-      video.play();
-      console.log("Camera is now on.");
-    })
-    .catch(function(error) {
-      console.error('Error accessing the camera: ', error);
-      alert('Unable to access the camera. Please check your camera permissions.');
-    });
-}
-
-// Start the camera when the page loads
-startCamera();
-
-// Adding filter logic
+// Flags to toggle filters
 let isHeartActive = false;
 let isEmojiActive = false;
 
-// Create hearts flying above the head (basic emoji flying hearts filter)
+// Flying hearts and emojis storage
 const hearts = [];
-const heartSize = 40;
+const emojis = [];
 
-// Add flying heart emojis
+// Start the camera
+function startCamera() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(function (stream) {
+      video.srcObject = stream;
+      video.play();
+    })
+    .catch(function (error) {
+      console.error('Error accessing the camera:', error);
+    });
+}
+
+// Add flying hearts
 function toggleHearts() {
   isHeartActive = !isHeartActive;
   if (isHeartActive) {
@@ -35,7 +32,7 @@ function toggleHearts() {
   }
 }
 
-// Add love emojis flying above the head
+// Add flying love emojis
 function toggleLoveEmoji() {
   isEmojiActive = !isEmojiActive;
   if (isEmojiActive) {
@@ -45,29 +42,29 @@ function toggleLoveEmoji() {
   }
 }
 
-// Draw hearts and love emoji over the video feed
-function drawFilters() {
-  const ctx = video.getContext('2d');
+// Function to draw emojis (hearts or love emoji)
+function drawEmojis() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frames
+
+  // Draw flying hearts
   if (isHeartActive) {
     hearts.push({
-      x: Math.random() * video.width,
-      y: Math.random() * video.height,
-      size: heartSize,
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: 30,
       speed: Math.random() * 2 + 1
     });
   }
 
+  // Draw flying love emojis
   if (isEmojiActive) {
-    hearts.push({
-      x: Math.random() * video.width,
-      y: Math.random() * video.height,
-      size: heartSize,
+    emojis.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: 30,
       speed: Math.random() * 2 + 1
     });
   }
-
-  // Clear previous frame and draw new emojis
-  ctx.clearRect(0, 0, video.width, video.height);
 
   // Draw hearts
   hearts.forEach((heart, index) => {
@@ -75,31 +72,52 @@ function drawFilters() {
     ctx.fillText('❤️', heart.x, heart.y);
     heart.y += heart.speed;
 
-    if (heart.y > video.height) {
-      hearts.splice(index, 1);
+    if (heart.y > canvas.height) {
+      hearts.splice(index, 1); // Remove hearts that go off the screen
     }
   });
 
   // Draw love emojis
-  hearts.forEach((emoji, index) => {
+  emojis.forEach((emoji, index) => {
     ctx.font = `${emoji.size}px Arial`;
     ctx.fillText('💕', emoji.x, emoji.y);
     emoji.y += emoji.speed;
 
-    if (emoji.y > video.height) {
-      hearts.splice(index, 1);
+    if (emoji.y > canvas.height) {
+      emojis.splice(index, 1); // Remove emojis that go off the screen
     }
   });
 
-  requestAnimationFrame(drawFilters);
+  // Keep the drawing going
+  requestAnimationFrame(drawEmojis);
+}
+
+// Capture the current frame
+function captureImage() {
+  // Create a new canvas to capture the current video frame
+  const captureCanvas = document.createElement('canvas');
+  const captureCtx = captureCanvas.getContext('2d');
+  captureCanvas.width = video.videoWidth;
+  captureCanvas.height = video.videoHeight;
+  
+  // Draw the video feed onto the capture canvas
+  captureCtx.drawImage(video, 0, 0, captureCanvas.width, captureCanvas.height);
+  
+  // Convert the canvas to a data URL and open it in a new window
+  const imageUrl = captureCanvas.toDataURL('image/png');
+  const imgWindow = window.open();
+  imgWindow.document.write(`<img src="${imageUrl}" />`);
 }
 
 // Button event listeners
 document.getElementById('heartFilterBtn').addEventListener('click', toggleHearts);
 document.getElementById('emojiFilterBtn').addEventListener('click', toggleLoveEmoji);
+document.getElementById('captureBtn').addEventListener('click', captureImage);
 
-// Start drawing the filters after the video is loaded
-video.addEventListener('play', function() {
-  drawFilters();
+// Start the camera when the page loads
+startCamera();
+
+// Draw emojis and hearts when the video is playing
+video.addEventListener('play', function () {
+  drawEmojis();
 });
-
