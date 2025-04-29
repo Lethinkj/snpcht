@@ -8,10 +8,13 @@
 </head>
 <body>
   <div class="camera-container">
+    <!-- Video container for the camera -->
     <div class="video-container">
       <video id="video" autoplay></video>
       <canvas id="canvas"></canvas>
     </div>
+
+    <!-- Controls for lens and filters -->
     <div class="controls">
       <button id="lens1">Lens 1 (Grayscale)</button>
       <button id="lens2">Lens 2 (Sepia)</button>
@@ -19,10 +22,11 @@
       <button id="dogFace">Dog Face</button>
       <button id="capture">Capture</button>
     </div>
+
+    <!-- Filters (heart emoji and dog face) -->
     <div id="filtersLayer">
-      <!-- Use emoji as heart filter -->
-      <div id="heartFilter" style="font-size: 50px; display: none;">❤️</div>
-      <img id="dogFaceFilter" src="https://upload.wikimedia.org/wikipedia/commons/1/1f/2016_Dog_Face_Emoji.png" alt="Dog Face Filter" />
+      <div id="heartFilter" style="font-size: 50px; position: absolute; display: none;">❤️</div>
+      <img id="dogFaceFilter" src="https://upload.wikimedia.org/wikipedia/commons/1/1f/2016_Dog_Face_Emoji.png" alt="Dog Face Filter" style="position: absolute; display: none;" />
     </div>
   </div>
   <script src="script.js"></script>
