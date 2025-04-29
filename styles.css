@@ -65,3 +65,11 @@ body, html {
 .capture-button {
   background: rgba(255, 0, 0, 0.7); /* Red for Capture */
 }
+
+#heartImage, #dogImage {
+  position: absolute;
+  pointer-events: none; /* Make images non-interactive */
+  width: 50px;
+  height: 50px;
+  z-index: 20;
+}
