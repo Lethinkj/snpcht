@@ -6,7 +6,7 @@ const ctx = canvas.getContext('2d');
 let isHeartActive = false;
 let isEmojiActive = false;
 
-// Flying hearts and emojis storage
+// Array to store emoji coordinates
 const hearts = [];
 const emojis = [];
 
@@ -22,7 +22,7 @@ function startCamera() {
     });
 }
 
-// Add flying hearts
+// Toggle Flying Hearts Filter
 function toggleHearts() {
   isHeartActive = !isHeartActive;
   if (isHeartActive) {
@@ -32,7 +32,7 @@ function toggleHearts() {
   }
 }
 
-// Add flying love emojis
+// Toggle Love Emoji Filter
 function toggleLoveEmoji() {
   isEmojiActive = !isEmojiActive;
   if (isEmojiActive) {
@@ -42,11 +42,11 @@ function toggleLoveEmoji() {
   }
 }
 
-// Function to draw emojis (hearts or love emoji)
+// Function to draw emojis on the canvas
 function drawEmojis() {
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frames
 
-  // Draw flying hearts
+  // Add new hearts and emojis if the respective filters are active
   if (isHeartActive) {
     hearts.push({
       x: Math.random() * canvas.width,
@@ -56,7 +56,6 @@ function drawEmojis() {
     });
   }
 
-  // Draw flying love emojis
   if (isEmojiActive) {
     emojis.push({
       x: Math.random() * canvas.width,
@@ -73,7 +72,7 @@ function drawEmojis() {
     heart.y += heart.speed;
 
     if (heart.y > canvas.height) {
-      hearts.splice(index, 1); // Remove hearts that go off the screen
+      hearts.splice(index, 1); // Remove hearts that go off-screen
     }
   });
 
@@ -84,17 +83,17 @@ function drawEmojis() {
     emoji.y += emoji.speed;
 
     if (emoji.y > canvas.height) {
-      emojis.splice(index, 1); // Remove emojis that go off the screen
+      emojis.splice(index, 1); // Remove emojis that go off-screen
     }
   });
 
-  // Keep the drawing going
+  // Continue drawing emojis
   requestAnimationFrame(drawEmojis);
 }
 
-// Capture the current frame
+// Capture the current frame from the video
 function captureImage() {
-  // Create a new canvas to capture the current video frame
+  // Create a new canvas to capture the video frame
   const captureCanvas = document.createElement('canvas');
   const captureCtx = captureCanvas.getContext('2d');
   captureCanvas.width = video.videoWidth;
@@ -117,7 +116,7 @@ document.getElementById('captureBtn').addEventListener('click', captureImage);
 // Start the camera when the page loads
 startCamera();
 
-// Draw emojis and hearts when the video is playing
+// Draw emojis when the video is playing
 video.addEventListener('play', function () {
   drawEmojis();
 });
