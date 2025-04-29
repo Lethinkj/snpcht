@@ -15,14 +15,19 @@ Promise.all([
   faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
   faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
   faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-]).then(startVideo);
+]).then(startVideo).catch(err => {
+  console.error("Error loading models:", err);
+});
 
 // Start video stream
 function startVideo() {
+  console.log("Requesting camera access...");
+
   navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => {
       video.srcObject = stream;
       video.play();
+      console.log("Video stream started!");
     })
     .catch(err => {
       console.log("Error accessing camera: ", err);
@@ -32,6 +37,7 @@ function startVideo() {
 video.addEventListener("play", () => {
   canvas.width = video.width;
   canvas.height = video.height;
+  console.log("Video is playing, starting face detection...");
   detectFace();
 });
 
