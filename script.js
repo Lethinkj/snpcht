@@ -27,7 +27,19 @@ video.addEventListener('play', () => {
 
 // Function to draw the video frame on the canvas
 function drawFrame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+  applyFilters(); // Apply the selected filter
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height); // Draw video on canvas
+  
+  // Draw any overlay images (heart, dog face)
+  if (isFlyingHeart) {
+    drawFlyingHeart();
+  }
+  
+  if (isDogFace) {
+    applyDogFaceFilter();
+  }
+
   requestAnimationFrame(drawFrame);  // Keep drawing the next frame
 }
 
@@ -40,6 +52,7 @@ const dogFaceButton = document.getElementById("dogFace");
 let currentLens = null;
 let isFlyingHeart = false;
 let heartPosition = { x: 150, y: 50 };
+let isDogFace = false;
 
 // Lens filters (grayscale, sepia)
 lens1.addEventListener("click", () => applyLens(1));
@@ -55,7 +68,10 @@ flyingHeartButton.addEventListener("click", () => {
 
 // Dog Face effect
 dogFaceButton.addEventListener("click", () => {
-  applyDogFaceFilter();
+  isDogFace = !isDogFace;
+  if (isDogFace) {
+    applyDogFaceFilter();
+  }
 });
 
 function applyLens(lensId) {
@@ -72,11 +88,7 @@ function applyFilters() {
   } else {
     ctx.filter = "none"; // No filter
   }
-  drawFrame(); // Re-render frame with applied filter
 }
-
-// Keep applying filter while video is playing
-setInterval(applyFilters, 100);
 
 // Flying Heart Animation
 function animateHeart() {
@@ -120,4 +132,3 @@ setInterval(() => {
     drawFlyingHeart();
   }
 }, 30); // Update heart position every 30ms
-
