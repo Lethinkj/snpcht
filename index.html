@@ -13,11 +13,15 @@
   <!-- Video element to display camera feed -->
   <video id="video" width="300" height="300" autoplay></video>
 
-  <!-- Buttons for filters -->
+  <!-- Button controls -->
   <div class="controls">
     <button id="heartFilterBtn">❤️ Flying Hearts</button>
     <button id="emojiFilterBtn">💕 Love Emoji</button>
+    <button id="captureBtn">Capture</button>
   </div>
+
+  <!-- Canvas for drawing emojis over the video -->
+  <canvas id="canvas" width="300" height="300"></canvas>
 
   <!-- Script files -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
