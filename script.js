@@ -1,148 +1,105 @@
-const video = document.getElementById("video");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const video = document.getElementById('video');
 
-const heartFilter = document.getElementById("heartFilter");
-const loveEmojiFilter = document.getElementById("loveEmojiFilter");
-
-let hearts = [];
-let isFlyingHeart = false;
-let isLoveEmoji = false;
-let detectedFace = null;
-
-// Load face-api.js models
-Promise.all([
-  faceapi.nets.ssdMobilenetv1.loadFromUri('/models'),
-  faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-  faceapi.nets.faceRecognitionNet.loadFromUri('/models')
-]).then(startVideo).catch(err => {
-  console.error("Error loading models:", err);
-});
-
-// Start video stream
-function startVideo() {
-  console.log("Requesting camera access...");
-
+// Function to start the camera
+function startCamera() {
   navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
+    .then(function(stream) {
       video.srcObject = stream;
       video.play();
-      console.log("Video stream started!");
+      console.log("Camera is now on.");
     })
-    .catch(err => {
-      console.log("Error accessing camera: ", err);
+    .catch(function(error) {
+      console.error('Error accessing the camera: ', error);
+      alert('Unable to access the camera. Please check your camera permissions.');
     });
 }
 
-video.addEventListener("play", () => {
-  canvas.width = video.width;
-  canvas.height = video.height;
-  console.log("Video is playing, starting face detection...");
-  detectFace();
+// Start the camera when the page loads
+startCamera();
+
+// Adding filter logic
+let isHeartActive = false;
+let isEmojiActive = false;
+
+// Create hearts flying above the head (basic emoji flying hearts filter)
+const hearts = [];
+const heartSize = 40;
+
+// Add flying heart emojis
+function toggleHearts() {
+  isHeartActive = !isHeartActive;
+  if (isHeartActive) {
+    console.log("Flying Hearts Activated");
+  } else {
+    console.log("Flying Hearts Deactivated");
+  }
+}
+
+// Add love emojis flying above the head
+function toggleLoveEmoji() {
+  isEmojiActive = !isEmojiActive;
+  if (isEmojiActive) {
+    console.log("Love Emoji Activated");
+  } else {
+    console.log("Love Emoji Deactivated");
+  }
+}
+
+// Draw hearts and love emoji over the video feed
+function drawFilters() {
+  const ctx = video.getContext('2d');
+  if (isHeartActive) {
+    hearts.push({
+      x: Math.random() * video.width,
+      y: Math.random() * video.height,
+      size: heartSize,
+      speed: Math.random() * 2 + 1
+    });
+  }
+
+  if (isEmojiActive) {
+    hearts.push({
+      x: Math.random() * video.width,
+      y: Math.random() * video.height,
+      size: heartSize,
+      speed: Math.random() * 2 + 1
+    });
+  }
+
+  // Clear previous frame and draw new emojis
+  ctx.clearRect(0, 0, video.width, video.height);
+
+  // Draw hearts
+  hearts.forEach((heart, index) => {
+    ctx.font = `${heart.size}px Arial`;
+    ctx.fillText('❤️', heart.x, heart.y);
+    heart.y += heart.speed;
+
+    if (heart.y > video.height) {
+      hearts.splice(index, 1);
+    }
+  });
+
+  // Draw love emojis
+  hearts.forEach((emoji, index) => {
+    ctx.font = `${emoji.size}px Arial`;
+    ctx.fillText('💕', emoji.x, emoji.y);
+    emoji.y += emoji.speed;
+
+    if (emoji.y > video.height) {
+      hearts.splice(index, 1);
+    }
+  });
+
+  requestAnimationFrame(drawFilters);
+}
+
+// Button event listeners
+document.getElementById('heartFilterBtn').addEventListener('click', toggleHearts);
+document.getElementById('emojiFilterBtn').addEventListener('click', toggleLoveEmoji);
+
+// Start drawing the filters after the video is loaded
+video.addEventListener('play', function() {
+  drawFilters();
 });
 
-// Detect face using face-api.js
-async function detectFace() {
-  const detections = await faceapi.detectAllFaces(video).withFaceLandmarks();
-  
-  if (detections.length > 0) {
-    detectedFace = detections[0].detection;
-  } else {
-    detectedFace = null;
-  }
-
-  requestAnimationFrame(detectFace);
-  drawFrame();
-}
-
-// Draw video and filter effects continuously
-function drawFrame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Draw video on canvas
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  // Update hearts positions if flying
-  if (isFlyingHeart && detectedFace) {
-    moveHearts(detectedFace);
-  }
-
-  // Draw hearts above the head if active
-  hearts.forEach(heart => {
-    ctx.font = '30px Arial';
-    ctx.fillText(heart.emoji, heart.x, heart.y);
-  });
-
-  // Show love emoji filter
-  if (isLoveEmoji && detectedFace) {
-    loveEmojiFilter.style.display = 'block';
-    loveEmojiFilter.style.left = detectedFace.box.x + detectedFace.box.width / 2 - 25 + 'px';
-    loveEmojiFilter.style.top = detectedFace.box.y - 40 + 'px';
-  } else {
-    loveEmojiFilter.style.display = 'none';
-  }
-}
-
-// Toggle flying hearts
-document.getElementById("flyingHeart").addEventListener("click", toggleHearts);
-
-// Toggle love emoji filter
-document.getElementById("heartWithLove").addEventListener("click", toggleLoveEmoji);
-
-// Capture image and download
-document.getElementById("capture").addEventListener("click", captureImage);
-
-// Toggle the heart filter on and off
-function toggleHearts() {
-  isFlyingHeart = !isFlyingHeart;
-  if (isFlyingHeart) {
-    createHearts();
-  } else {
-    hearts = [];  // Stop flying hearts when toggled off
-  }
-}
-
-// Create multiple hearts above the head
-function createHearts() {
-  if (!detectedFace) return;
-  // Create a set of hearts floating above the face
-  for (let i = 0; i < 5; i++) { // 5 hearts
-    hearts.push({
-      x: detectedFace.box.x + Math.random() * detectedFace.box.width,
-      y: detectedFace.box.y - 50 - Math.random() * 30,  // Above the head
-      speedX: (Math.random() - 0.5) * 3,
-      speedY: (Math.random() - 0.5) * 3,
-      emoji: '❤️'
-    });
-  }
-}
-
-// Move hearts randomly above the head
-function moveHearts(face) {
-  hearts.forEach(heart => {
-    heart.x += heart.speedX;
-    heart.y += heart.speedY;
-
-    // Bounce hearts off the canvas edges
-    if (heart.x <= face.box.x || heart.x >= face.box.x + face.box.width) {
-      heart.speedX *= -1;
-    }
-    if (heart.y <= face.box.y || heart.y >= face.box.y - 40) { // Prevent hearts going too far down
-      heart.speedY *= -1;
-    }
-  });
-}
-
-// Toggle love emoji filter
-function toggleLoveEmoji() {
-  isLoveEmoji = !isLoveEmoji;
-}
-
-// Capture image and download
-function captureImage() {
-  const dataUrl = canvas.toDataURL("image/png"); // Capture canvas as image
-  const link = document.createElement('a');
-  link.href = dataUrl;
-  link.download = 'snapshot.png'; // Set file name for download
-  link.click(); // Trigger download
-}
