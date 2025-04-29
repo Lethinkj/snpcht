@@ -12,17 +12,17 @@ navigator.mediaDevices.getUserMedia({ video: true })
     console.log("Error accessing camera: ", err);
   });
 
-// Adjust canvas size to match video
+// Adjust canvas size to match video container size
 video.addEventListener('play', () => {
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  canvas.width = 300;  // Fixed width
+  canvas.height = 300; // Fixed height
   drawFrame();
 });
 
 // Function to draw the video frame on canvas
 function drawFrame() {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  requestAnimationFrame(drawFrame);  // Keep the frame drawing loop
+  requestAnimationFrame(drawFrame);  // Keep drawing the next frame
 }
 
 // Lens functionality
