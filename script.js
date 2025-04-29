@@ -3,6 +3,12 @@ const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
+const heartImage = document.createElement("img");
+heartImage.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Red_Heart_Emoji.png/500px-Red_Heart_Emoji.png"; // Heart emoji image
+
+const dogImage = document.createElement("img");
+dogImage.src = "https://upload.wikimedia.org/wikipedia/commons/1/1f/2016_Dog_Face_Emoji.png"; // Dog face emoji
+
 navigator.mediaDevices.getUserMedia({ video: true })
   .then(stream => {
     video.srcObject = stream;
@@ -28,11 +34,29 @@ function drawFrame() {
 // Lens functionality
 const lens1 = document.getElementById("lens1");
 const lens2 = document.getElementById("lens2");
+const flyingHeartButton = document.getElementById("flyingHeart");
+const dogFaceButton = document.getElementById("dogFace");
 
 let currentLens = null;
+let isFlyingHeart = false;
+let heartPosition = { x: 150, y: 50 };
 
+// Lens filters (grayscale, sepia)
 lens1.addEventListener("click", () => applyLens(1));
 lens2.addEventListener("click", () => applyLens(2));
+
+// Flying Heart effect
+flyingHeartButton.addEventListener("click", () => {
+  isFlyingHeart = !isFlyingHeart;
+  if (isFlyingHeart) {
+    animateHeart();
+  }
+});
+
+// Dog Face effect
+dogFaceButton.addEventListener("click", () => {
+  applyDogFaceFilter();
+});
 
 function applyLens(lensId) {
   currentLens = lensId;
@@ -54,6 +78,25 @@ function applyFilters() {
 // Keep applying filter while video is playing
 setInterval(applyFilters, 100);
 
+// Flying Heart Animation
+function animateHeart() {
+  if (!isFlyingHeart) return; // Stop if flying heart effect is turned off
+  heartPosition.x = Math.random() * canvas.width;
+  heartPosition.y = Math.random() * (canvas.height / 2); // Keep heart in the upper half of the screen
+  setTimeout(animateHeart, 1000); // Move heart every second
+}
+
+// Draw the heart on the canvas
+function drawFlyingHeart() {
+  ctx.drawImage(heartImage, heartPosition.x, heartPosition.y, 50, 50); // Draw heart image
+}
+
+// Dog Face Filter (fixed position)
+function applyDogFaceFilter() {
+  ctx.filter = "none"; // Remove any previous filters
+  ctx.drawImage(dogImage, 100, 100, 100, 100); // Draw dog face at fixed position (100, 100)
+}
+
 // Capture functionality
 const captureButton = document.getElementById("capture");
 
@@ -70,3 +113,11 @@ function downloadImage(data, filename) {
   a.download = filename;
   a.click();
 }
+
+// Continuously draw heart while effect is on
+setInterval(() => {
+  if (isFlyingHeart) {
+    drawFlyingHeart();
+  }
+}, 30); // Update heart position every 30ms
+
