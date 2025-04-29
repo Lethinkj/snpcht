@@ -49,13 +49,19 @@ function toggleLoveEmoji() {
   }
 }
 
-// Draw hearts on the canvas above the detected head
+// Resize canvas to match video dimensions
+function resizeCanvas() {
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+}
+
+// Draw hearts and emojis on the canvas above the detected head
 async function drawEmojis() {
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frames
 
   const detections = await faceapi.detectAllFaces(video).withFaceLandmarks(); // Detect faces with landmarks
 
-  // Add new hearts if the respective filters are active
+  // Add new hearts if the respective filters are active and faces are detected
   if (isHeartActive && detections.length > 0) {
     detections.forEach(detection => {
       // Get the position of the face (we'll use the landmark for the position of the face)
@@ -136,8 +142,9 @@ document.getElementById('captureBtn').addEventListener('click', captureImage);
 // Start the camera when the page loads
 startCamera();
 
-// Load face-api models and draw emojis when the video is playing
+// Resize canvas and load face-api models when the video is playing
 video.addEventListener('play', async function () {
+  resizeCanvas();  // Ensure the canvas is the same size as the video
   await loadFaceApiModels(); // Load face-api.js models
   drawEmojis(); // Start drawing emojis
 });
