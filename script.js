@@ -6,11 +6,18 @@ const ctx = canvas.getContext('2d');
 let isHeartActive = false;
 let isEmojiActive = false;
 
-// Array to store emoji coordinates
+// Array to store heart coordinates
 const hearts = [];
 const emojis = [];
 
-// Start the camera
+// Load face-api.js models for face detection
+async function loadFaceApiModels() {
+  await faceapi.nets.ssdMobilenetv1.loadFromUri('/models'); // Load the model from a specific directory (adjust path as needed)
+  await faceapi.nets.faceLandmark68Net.loadFromUri('/models'); // Load face landmark model (for more detailed detection)
+  await faceapi.nets.faceRecognitionNet.loadFromUri('/models'); // Load face recognition model
+}
+
+// Start the camera and set up face detection
 function startCamera() {
   navigator.mediaDevices.getUserMedia({ video: true })
     .then(function (stream) {
@@ -42,34 +49,33 @@ function toggleLoveEmoji() {
   }
 }
 
-// Function to draw emojis on the canvas
-function drawEmojis() {
+// Draw hearts on the canvas above the detected head
+async function drawEmojis() {
   ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frames
 
-  // Add new hearts and emojis if the respective filters are active
-  if (isHeartActive) {
-    hearts.push({
-      x: Math.random() * canvas.width,  // Position the hearts randomly across the screen
-      y: canvas.height,                 // Start from the bottom
-      size: 30,
-      speed: Math.random() * 2 + 1      // Random speed for each heart
+  const detections = await faceapi.detectAllFaces(video).withFaceLandmarks(); // Detect faces with landmarks
+
+  // Add new hearts if the respective filters are active
+  if (isHeartActive && detections.length > 0) {
+    detections.forEach(detection => {
+      // Get the position of the face (we'll use the landmark for the position of the face)
+      const { x, y, width, height } = detection.detection.box;
+
+      // Place the heart above the head (slightly offset)
+      hearts.push({
+        x: x + width / 2,   // Center the heart above the face
+        y: y - 30,          // Position it above the head
+        size: 30,
+        speed: Math.random() * 2 + 1
+      });
     });
   }
 
-  if (isEmojiActive) {
-    emojis.push({
-      x: Math.random() * canvas.width,  // Position the emojis randomly across the screen
-      y: canvas.height,                 // Start from the bottom
-      size: 30,
-      speed: Math.random() * 2 + 1      // Random speed for each emoji
-    });
-  }
-
-  // Draw hearts
+  // Draw flying hearts
   hearts.forEach((heart, index) => {
     ctx.font = `${heart.size}px Arial`;
     ctx.fillText('❤️', heart.x, heart.y);
-    heart.y -= heart.speed;  // Move hearts upwards
+    heart.y -= heart.speed;  // Move the heart upwards
 
     if (heart.y < 0) {
       hearts.splice(index, 1); // Remove hearts that go off-screen
@@ -77,10 +83,24 @@ function drawEmojis() {
   });
 
   // Draw love emojis
+  if (isEmojiActive && detections.length > 0) {
+    detections.forEach(detection => {
+      const { x, y, width, height } = detection.detection.box;
+      
+      emojis.push({
+        x: x + width / 2,   // Center the emoji above the face
+        y: y - 30,          // Position it above the head
+        size: 30,
+        speed: Math.random() * 2 + 1
+      });
+    });
+  }
+
+  // Draw emojis (Love Emoji)
   emojis.forEach((emoji, index) => {
     ctx.font = `${emoji.size}px Arial`;
     ctx.fillText('💕', emoji.x, emoji.y);
-    emoji.y -= emoji.speed;  // Move emojis upwards
+    emoji.y -= emoji.speed;  // Move the emoji upwards
 
     if (emoji.y < 0) {
       emojis.splice(index, 1); // Remove emojis that go off-screen
@@ -116,7 +136,8 @@ document.getElementById('captureBtn').addEventListener('click', captureImage);
 // Start the camera when the page loads
 startCamera();
 
-// Draw emojis when the video is playing
-video.addEventListener('play', function () {
-  drawEmojis();
+// Load face-api models and draw emojis when the video is playing
+video.addEventListener('play', async function () {
+  await loadFaceApiModels(); // Load face-api.js models
+  drawEmojis(); // Start drawing emojis
 });
