@@ -1,220 +1,125 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snapchat-Inspired Camera</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #000;
-            color: #fff;
-            height: 100vh;
-            overflow: hidden;
+<script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let currentFilter = 'none';
+    let hearts = [];
+
+    // Debug: Confirm controls are rendered
+    const controls = document.getElementById('controls');
+    if (controls) {
+        console.log('Controls div is rendered with', controls.children.length, 'buttons.');
+    } else {
+        console.error('Controls div not found.');
+    }
+
+    // Start video stream
+    function startVideo() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    console.log('Camera started.');
+                    document.getElementById('loading').style.display = 'none';
+                    render();
+                };
+            })
+            .catch(err => {
+                console.error('Error accessing camera:', err);
+                const loading = document.getElementById('loading');
+                loading.innerHTML = 'Error: Could not access camera. <button onclick="startVideo()">Retry</button>';
+            });
+    }
+
+    // Set filter
+    function setFilter(filter) {
+        currentFilter = filter;
+        hearts = [];
+        document.querySelectorAll('#controls button').forEach(btn => btn.classList.remove('active'));
+        document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
+        console.log('Filter set to:', filter);
+    }
+
+    // Load heart image
+    const heartImg = new Image();
+    heartImg.src = './assets/heart.png';
+    heartImg.onload = () => console.log('heart.png loaded successfully.');
+    heartImg.onerror = () => {
+        console.error('Failed to load heart.png');
+        const loading = document.getElementById('loading');
+        loading.innerText = 'Error: Could not load heart image.';
+        document.querySelector('button[onclick="setFilter(\'hearts\')]').disabled = true;
+        setTimeout(() => { loading.style.display = 'none'; }, 3000);
+    };
+
+    // Heart object
+    class Heart {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = canvas.height;
+            this.opacity = 1;
+            this.speed = Math.random() * 1.5 + 0.5; // Slower speed: 0.5–2 pixels per frame
+            this.size = Math.random() * 50 + 30; // Larger size: 30–80 pixels
+            this.angle = Math.random() * Math.PI * 2; // For sinusoidal movement
+            this.driftSpeed = Math.random() * 0.5 - 0.25; // Horizontal drift: -0.25 to 0.25 pixels
+            this.rotation = Math.random() * Math.PI * 2; // Initial rotation
+            this.rotationSpeed = Math.random() * 0.05 - 0.025; // Rotation speed: -0.025 to 0.025 radians
+            this.direction = Math.random() * 0.2 - 0.1; // Slight directional variation (-0.1 to 0.1 radians)
         }
-        #video-container {
-            position: relative;
-            width: 100%;
-            max-width: 640px;
-            aspect-ratio: 9/16;
-            background: #000;
+        update() {
+            this.y -= this.speed * Math.cos(this.direction); // Move with slight angle
+            this.x += this.driftSpeed + Math.sin(this.angle) * 2; // Add sinusoidal horizontal drift
+            this.angle += 0.05; // Update angle for oscillation
+            this.opacity -= 0.005; // Slower fade: lasts longer
+            this.rotation += this.rotationSpeed; // Update rotation
         }
-        #video, #canvas {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.opacity;
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.rotation);
+            ctx.drawImage(heartImg, -this.size / 2, -this.size / 2, this.size, this.size);
+            ctx.restore();
         }
-        #canvas {
-            z-index: 1;
-        }
-        #controls {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 640px;
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        button {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: #fff;
-            padding: 10px 15px;
-            margin: 0 5px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        button:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }
-        button.active {
-            background: rgba(255, 255, 255, 0.6);
-        }
-        #capture {
-            background: #fff;
-            color: #000;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 20px;
-        }
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 18px;
-            z-index: 5;
-        }
-        @supports not (aspect-ratio: 9/16) {
-            #video-container {
-                width: 100%;
-                max-width: 640px;
-                height: calc(100vw * 16 / 9);
+    }
+
+    // Render loop
+    function render() {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        if (currentFilter === 'hearts' && heartImg.complete && heartImg.naturalWidth !== 0) {
+            if (Math.random() < 0.05 && hearts.length < 15) { // Reduced spawn rate, max 15 hearts
+                hearts.push(new Heart());
             }
-        }
-    </style>
-</head>
-<body>
-    <div id="video-container">
-        <video id="video" autoplay></video>
-        <canvas id="canvas"></canvas>
-        <div id="loading">Loading...</div>
-    </div>
-    <div id="controls">
-        <button onclick="setFilter('none')" aria-label="Apply no filter" class="active">None</button>
-        <button onclick="setFilter('hearts')" aria-label="Apply random hearts filter">Random Hearts</button>
-        <button onclick="setFilter('grayscale')" aria-label="Apply grayscale filter">Grayscale</button>
-        <button id="capture" onclick="capturePhoto()" aria-label="Capture photo">📸</button>
-    </div>
-
-    <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let currentFilter = 'none';
-        let hearts = [];
-
-        // Debug: Confirm controls are rendered
-        const controls = document.getElementById('controls');
-        if (controls) {
-            console.log('Controls div is rendered with', controls.children.length, 'buttons.');
-        } else {
-            console.error('Controls div not found.');
-        }
-
-        // Start video stream
-        function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.onloadedmetadata = () => {
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        console.log('Camera started.');
-                        document.getElementById('loading').style.display = 'none';
-                        render();
-                    };
-                })
-                .catch(err => {
-                    console.error('Error accessing camera:', err);
-                    const loading = document.getElementById('loading');
-                    loading.innerHTML = 'Error: Could not access camera. <button onclick="startVideo()">Retry</button>';
-                });
-        }
-
-        // Set filter
-        function setFilter(filter) {
-            currentFilter = filter;
-            hearts = [];
-            document.querySelectorAll('#controls button').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
-            console.log('Filter set to:', filter);
-        }
-
-        // Load heart image
-        const heartImg = new Image();
-        heartImg.src = './assets/heart.png';
-        heartImg.onload = () => console.log('heart.png loaded successfully.');
-        heartImg.onerror = () => {
-            console.error('Failed to load heart.png');
-            const loading = document.getElementById('loading');
-            loading.innerText = 'Error: Could not load heart image.';
-            document.querySelector('button[onclick="setFilter(\'hearts\')]').disabled = true;
-            setTimeout(() => { loading.style.display = 'none'; }, 3000);
-        };
-
-        // Heart object
-        class Heart {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = canvas.height;
-                this.opacity = 1;
-                this.speed = Math.random() * 2 + 1;
-                this.size = Math.random() * 20 + 20;
+            hearts = hearts.filter(heart => heart.opacity > 0 && heart.y > -heart.size);
+            hearts.forEach(heart => {
+                heart.update();
+                heart.draw();
+            });
+        } else if (currentFilter === 'grayscale') {
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = data[i + 1] = data[i + 2] = avg;
             }
-            update() {
-                this.y -= this.speed;
-                this.opacity -= 0.02;
-            }
-            draw() {
-                ctx.globalAlpha = this.opacity;
-                ctx.drawImage(heartImg, this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
-                ctx.globalAlpha = 1;
-            }
+            ctx.putImageData(imageData, 0, 0);
         }
 
-        // Render loop
-        function render() {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(render);
+    }
 
-            if (currentFilter === 'hearts' && heartImg.complete && heartImg.naturalWidth !== 0 && hearts.length < 20) {
-                if (Math.random() < 0.1) {
-                    hearts.push(new Heart());
-                }
-                hearts = hearts.filter(heart => heart.opacity > 0);
-                hearts.forEach(heart => {
-                    heart.update();
-                    heart.draw();
-                });
-            } else if (currentFilter === 'grayscale') {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                for (let i = 0; i < data.length; i += 4) {
-                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                    data[i] = data[i + 1] = data[i + 2] = avg;
-                }
-                ctx.putImageData(imageData, 0, 0);
-            }
+    // Capture photo
+    function capturePhoto() {
+        const link = document.createElement('a');
+        link.download = 'snapchat-photo.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        console.log('Photo captured.');
+    }
 
-            requestAnimationFrame(render);
-        }
-
-        // Capture photo
-        function capturePhoto() {
-            const link = document.createElement('a');
-            link.download = 'snapchat-photo.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-            console.log('Photo captured.');
-        }
-
-        // Initialize
-        startVideo();
-    </script>
-</body>
-</html>
+    // Initialize
+    startVideo();
+</script>
