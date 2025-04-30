@@ -68,13 +68,13 @@
             backdrop-filter: blur(12px);
             border-radius: 32px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            opacity: 0.9;
+            opacity: 1; /* Ensure visible initially */
             transition: opacity 0.3s ease;
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         #filter-controls::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            display: none;
         }
         #filter-controls.active {
             opacity: 1;
@@ -294,7 +294,7 @@
         </div>
     </div>
     <div id="controls">
-        <div id="filter-controls">
+        <div id="filter-controls" class="active">
             <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -346,7 +346,8 @@
         // DOM elements
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const ctx = canvas.get        const controls = document.getElementById('controls');
+        const ctx = canvas.getContext('2d');
+        const controls = document.getElementById('controls');
         const filterControls = document.getElementById('filter-controls');
         const loading = document.getElementById('loading');
         const flash = document.getElementById('flash');
@@ -382,7 +383,7 @@
             null: 'No Filter'
         };
 
-        // Heart images
+        // Heart images (use fallback if images are unavailable)
         const heartImages = {
             filter1: { src: './assets/color_heart.png', img: new Image(), loaded: false },
             filter2: { src: './assets/heart.png', img: new Image(), loaded: false },
@@ -397,12 +398,9 @@
             heart.img.src = heart.src;
             heart.img.onload = () => {
                 heart.loaded = true;
-                console.log(`Loaded: ${heart.src}`);
             };
             heart.img.onerror = () => {
-                console.error(`Failed to load: ${heart.src}`);
-                loading.innerText = `Error: Could not load ${heart.src.split('/').pop()}.`;
-                setTimeout(() => { loading.style.display = 'none'; }, 3000);
+                heart.loaded = false; // Use fallback if image fails to load
             };
         });
 
@@ -438,7 +436,6 @@
                 this.scaleFactor = 1;
                 this.scaleDirection = 0.01;
                 this.image = heartImages[filter]?.loaded ? heartImages[filter].img : null;
-                console.log(`Heart created for ${filter}: ${this.image ? this.image.src : 'fallback'}`);
             }
             update() {
                 this.y -= this.speed;
@@ -468,28 +465,48 @@
                     drawFallbackHeart(0, 0, this.size);
                 }
                 ctx.restore();
-                console.log(`Heart drawn: x=${this.x}, y=${this.y}, opacity=${this.opacity}`);
             }
         }
 
         // Start video stream
         function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.onloadedmetadata = () => {
-                        canvas.width = Math.min(video.videoWidth, 1280);
-                        canvas.height = Math.min(video.videoHeight, 720);
-                        ctx.imageSmoothingEnabled = true;
-                        console.log(`Canvas set: ${canvas.width}x${canvas.height}`);
-                        loading.style.display = 'none';
-                        render();
-                    };
-                })
-                .catch(err => {
-                    console.error('Camera error:', err);
-                    loading.innerHTML = 'Error: Could not access camera. <button onclick="startVideo()">Retry</button>';
-                });
+            // Try front-facing camera first, then any available camera
+            const constraints = [
+                { video: { facingMode: 'user' } },
+                { video: true } // Fallback to any camera
+            ];
+            let currentConstraintIndex = 0;
+
+            function tryNextConstraint() {
+                if (currentConstraintIndex >= constraints.length) {
+                    loading.innerHTML = 'Error: No camera available. <button onclick="startVideo()">Retry</button>';
+                    return;
+                }
+                navigator.mediaDevices.getUserMedia(constraints[currentConstraintIndex])
+                    .then(stream => {
+                        video.srcObject = stream;
+                        video.onloadedmetadata = () => {
+                            canvas.width = Math.min(video.videoWidth, 1280);
+                            canvas.height = Math.min(video.videoHeight, 720);
+                            ctx.imageSmoothingEnabled = true;
+                            loading.style.display = 'none';
+                            render();
+                        };
+                    })
+                    .catch(err => {
+                        console.error('Camera error:', err);
+                        currentConstraintIndex++;
+                        tryNextConstraint();
+                    });
+            }
+            tryNextConstraint();
+
+            // Timeout to hide loading spinner if camera fails
+            setTimeout(() => {
+                if (loading.style.display !== 'none') {
+                    loading.innerHTML = 'Error: Camera failed to load. <button onclick="startVideo()">Retry</button>';
+                }
+            }, 5000);
         }
 
         // Toggle filter
@@ -516,7 +533,6 @@
             filterLabel.textContent = filterDescriptions[currentFilter];
             filterLabel.classList.add('show');
             setTimeout(() => { filterLabel.classList.remove('show'); }, 1000);
-            console.log(`Filter set: ${currentFilter || 'none'}`);
             showControls();
         }
 
@@ -547,7 +563,6 @@
                         heart.update();
                         heart.draw();
                     });
-                    console.log(`Rendering ${hearts.length} hearts`);
                 }
             }
 
@@ -563,7 +578,6 @@
             link.download = 'snapchat-photo.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            console.log('Photo captured');
             showControls();
         }
 
@@ -573,7 +587,6 @@
             const stream = canvas.captureStream(30);
             const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
             const fileExtension = mimeType === 'video/mp4' ? 'mp4' : 'webm';
-            console.log(`Recording format: ${mimeType}`);
             mediaRecorder = new MediaRecorder(stream, { mimeType });
             mediaRecorder.ondataavailable = e => {
                 if (e.data.size > 0) recordedChunks.push(e.data);
@@ -586,10 +599,8 @@
                 link.href = url;
                 link.click();
                 URL.revokeObjectURL(url);
-                console.log(`Video saved as ${fileExtension}`);
             };
             mediaRecorder.onerror = e => {
-                console.error('Recording error:', e);
                 loading.innerText = 'Error: Could not record video.';
                 setTimeout(() => { loading.style.display = 'none'; }, 3000);
             };
@@ -601,7 +612,6 @@
             recordingStartTime = Date.now();
             updateTimer();
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-            console.log('Recording started');
             setTimeout(() => {
                 if (mediaRecorder.state === 'recording') stopRecording();
             }, maxRecordingTime * 1000);
@@ -614,7 +624,6 @@
             actionButton.setAttribute('aria-label', 'Tap to capture photo, hold to record video');
             recordingIndicator.style.display = 'none';
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-            console.log('Recording stopped');
         }
 
         function updateTimer() {
@@ -638,7 +647,7 @@
             filterControls.classList.add('active');
             clearTimeout(filterControls.hideTimeout);
             if (!mediaRecorder || mediaRecorder.state !== 'recording') {
-                filterControls.hideTimeout = setTimeout(() => { filterControls.classList.remove('active'); }, 3000);
+                filterControls.hideTimeout = setTimeout(() => { filterControls.classList.remove('active'); }, 5000); // Extended timeout
             }
         }
         video.addEventListener('touchstart', showControls);
@@ -721,12 +730,11 @@
         }, { passive: false });
 
         // Initialize
-        if (controls) {
-            console.log('Controls rendered with', filterControls.children.length, 'filter buttons and 1 action button');
+        if (controls && filterControls) {
             startVideo();
             showControls();
         } else {
-            console.error('Controls not found');
+            loading.innerHTML = 'Error: UI elements not found. Please refresh the page.';
         }
     </script>
 </body>
