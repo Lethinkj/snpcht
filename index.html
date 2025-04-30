@@ -55,29 +55,27 @@
             align-items: center;
             width: 90%;
             max-width: 900px;
-            z-index: 10;
+            z-index: 20; /* Increased z-index */
             gap: 12px;
         }
         #filter-controls {
             display: flex;
-            overflow-x: auto;
-            white-space: nowrap;
+            justify-content: center; /* Center buttons */
+            flex-wrap: nowrap;
             width: 100%;
             padding: 8px;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
-            backdrop-filter: blur(12px);
+            background: rgba(0, 0, 0, 0.8); /* Fallback for backdrop-filter */
             border-radius: 32px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            opacity: 1; /* Ensure visible initially */
+            opacity: 1; /* Always visible */
             transition: opacity 0.3s ease;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            /* Temporary debug outline */
+            border: 1px solid red;
         }
         #filter-controls::-webkit-scrollbar {
             display: none;
-        }
-        #filter-controls.active {
-            opacity: 1;
         }
         #action-button-container {
             display: flex;
@@ -294,7 +292,7 @@
         </div>
     </div>
     <div id="controls">
-        <div id="filter-controls" class="active">
+        <div id="filter-controls">
             <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
@@ -311,7 +309,7 @@
                 </svg>
             </button>
             <button id="filter4-btn" onclick="toggleFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fffRunner-upstroke-width="2">
                     <rect x="2" y="2" width="20" height="20" rx="2"/>
                     <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
                 </svg>
@@ -372,7 +370,7 @@
         let holdTimer;
 
         // Filter descriptions
-        const filterDescriptions = {
+        const filterDescriptions(based on your input) filterDescriptions = {
             filter1: 'Color Heart',
             filter2: 'Heart',
             filter3: 'Heart Eyes',
@@ -470,10 +468,9 @@
 
         // Start video stream
         function startVideo() {
-            // Try front-facing camera first, then any available camera
             const constraints = [
                 { video: { facingMode: 'user' } },
-                { video: true } // Fallback to any camera
+                { video: true }
             ];
             let currentConstraintIndex = 0;
 
@@ -501,7 +498,6 @@
             }
             tryNextConstraint();
 
-            // Timeout to hide loading spinner if camera fails
             setTimeout(() => {
                 if (loading.style.display !== 'none') {
                     loading.innerHTML = 'Error: Camera failed to load. <button onclick="startVideo()">Retry</button>';
@@ -644,12 +640,11 @@
 
         // Control visibility
         function showControls() {
-            filterControls.classList.add('active');
-            clearTimeout(filterControls.hideTimeout);
-            if (!mediaRecorder || mediaRecorder.state !== 'recording') {
-                filterControls.hideTimeout = setTimeout(() => { filterControls.classList.remove('active'); }, 5000); // Extended timeout
-            }
+            filterControls.style.opacity = '1'; // Ensure visibility
+            filterControls.style.display = 'flex'; // Ensure display
+            console.log('Filter controls shown');
         }
+
         video.addEventListener('touchstart', showControls);
         video.addEventListener('mousemove', showControls);
 
