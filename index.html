@@ -210,38 +210,38 @@
         </div>
     </div>
     <div id="controls">
-        <button onclick="setFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
+        <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
-        <button onclick="setFilter('filter2')" aria-label="Apply Filter 2 (Heart)">
+        <button id="filter2-btn" onclick="toggleFilter('filter2')" aria-label="Apply Filter 2 (Heart)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
-        <button onclick="setFilter('filter3')" aria-label="Apply Filter 3 (Heart Eyes)">
+        <button id="filter3-btn" onclick="toggleFilter('filter3')" aria-label="Apply Filter 3 (Heart Eyes)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
-        <button onclick="setFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
+        <button id="filter4-btn" onclick="toggleFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
                 <rect x="2" y="2" width="20" height="20" rx="2"/>
                 <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
             </svg>
         </button>
-        <button onclick="setFilter('filter5')" aria-label="Apply Filter 5 (Grayscale + Heart)">
+        <button id="filter5-btn" onclick="toggleFilter('filter5')" aria-label="Apply Filter 5 (Grayscale + Heart)">
+            <svg width="24" height="パラメータ24" viewBox="0 0 24 24" fill="#fff">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        </button>
+        <button id="filter6-btn" onclick="toggleFilter('filter6')" aria-label="Apply Filter 6 (Grayscale + Color Heart)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
-        <button onclick="setFilter('filter6')" aria-label="Apply Filter 6 (Grayscale + Color Heart)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-        </button>
-        <button onclick="setFilter('filter7')" aria-label="Apply Filter 7 (Grayscale + Heart Eyes)">
+        <button id="filter7-btn" onclick="toggleFilter('filter7')" aria-label="Apply Filter 7 (Grayscale + Heart Eyes)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
@@ -273,10 +273,10 @@
         const recordingTimer = document.getElementById('recording-timer');
 
         // Filter state
-        let currentFilter = 'filter1';
+        let currentFilter = null; // null means no filter (raw video)
         let hearts = [];
         const filters = ['filter1', 'filter2', 'filter3', 'filter4', 'filter5', 'filter6', 'filter7'];
-        let filterIndex = 0;
+        let filterIndex = -1; // -1 for no filter
 
         // Recording state
         let mediaRecorder;
@@ -292,7 +292,8 @@
             filter4: 'Grayscale',
             filter5: 'Grayscale + Heart',
             filter6: 'Grayscale + Color Heart',
-            filter7: 'Grayscale + Heart Eyes'
+            filter7: 'Grayscale + Heart Eyes',
+            null: 'No Filter'
         };
 
         // Heart images
@@ -390,39 +391,56 @@
                 });
         }
 
-        // Set filter
-        function setFilter(filter) {
-            currentFilter = filter;
-            filterIndex = filters.indexOf(filter);
+        // Toggle filter
+        function toggleFilter(filter) {
+            if (currentFilter === filter) {
+                currentFilter = null;
+                filterIndex = -1;
+            } else {
+                currentFilter = filter;
+                filterIndex = filters.indexOf(filter);
+            }
             hearts = [];
-            document.querySelectorAll('#controls button:not(#capture):not(#record)').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
+            document.querySelectorAll('#controls button:not(#capture):not(#record)').forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-label', `Apply ${filterDescriptions[btn.id.replace('-btn', '')]}`);
+            });
+            if (currentFilter) {
+                const btn = document.getElementById(`${currentFilter}-btn`);
+                btn.classList.add('active');
+                btn.setAttribute('aria-label', `Turn off ${filterDescriptions[currentFilter]}`);
+            }
             canvas.style.opacity = '0.7';
             setTimeout(() => { canvas.style.opacity = '1'; }, 300);
-            filterLabel.textContent = filterDescriptions[filter];
+            filterLabel.textContent = filterDescriptions[currentFilter];
             filterLabel.classList.add('show');
             setTimeout(() => { filterLabel.classList.remove('show'); }, 1000);
-            console.log(`Filter set: ${filter}`);
+            console.log(`Filter set: ${currentFilter || 'none'}`);
             showControls();
         }
 
         // Render loop
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const isGrayscale = ['filter4', 'filter5', 'filter6', 'filter7'].includes(currentFilter);
-            ctx.filter = isGrayscale ? 'grayscale(100%)' : 'none';
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            ctx.filter = 'none';
 
-            if (['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
-                if (Math.random() < 0.05 && hearts.length < 15) {
-                    hearts.push(new Heart(currentFilter));
+            if (currentFilter) {
+                const isGrayscale = ['filter4', 'filter5', 'filter6', 'filter7'].includes(currentFilter);
+                if (isGrayscale) {
+                    ctx.filter = 'grayscale(100%)';
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    ctx.filter = 'none';
                 }
-                hearts = hearts.filter(heart => heart.opacity > 0 && heart.y > -heart.size);
-                hearts.forEach(heart => {
-                    heart.update();
-                    heart.draw();
-                });
+                if (['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
+                    if (Math.random() < 0.05 && hearts.length < 15) {
+                        hearts.push(new Heart(currentFilter));
+                    }
+                    hearts = hearts.filter(heart => heart.opacity > 0 && heart.y > -heart.size);
+                    hearts.forEach(heart => {
+                        heart.update();
+                        heart.draw();
+                    });
+                }
             }
 
             requestAnimationFrame(render);
@@ -452,7 +470,7 @@
 
         function startRecording() {
             recordedChunks = [];
-            const stream = canvas.captureStream(30); // 30fps
+            const stream = canvas.captureStream(30);
             mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
             mediaRecorder.ondataavailable = e => {
                 if (e.data.size > 0) recordedChunks.push(e.data);
@@ -519,11 +537,25 @@
             const touchEndX = e.changedTouches[0].clientX;
             const deltaX = touchEndX - touchStartX;
             if (deltaX > 50) {
-                filterIndex = (filterIndex - 1 + filters.length) % filters.length;
-                setFilter(filters[filterIndex]);
+                if (currentFilter === null) {
+                    filterIndex = filters.length - 1;
+                    toggleFilter(filters[filterIndex]);
+                } else if (filterIndex > 0) {
+                    filterIndex--;
+                    toggleFilter(filters[filterIndex]);
+                } else {
+                    toggleFilter(currentFilter); // Toggle off
+                }
             } else if (deltaX < -50) {
-                filterIndex = (filterIndex + 1) % filters.length;
-                setFilter(filters[filterIndex]);
+                if (currentFilter === null) {
+                    filterIndex = 0;
+                    toggleFilter(filters[filterIndex]);
+                } else if (filterIndex < filters.length - 1) {
+                    filterIndex++;
+                    toggleFilter(filters[filterIndex]);
+                } else {
+                    toggleFilter(currentFilter); // Toggle off
+                }
             }
         });
 
