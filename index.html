@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+
+ name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snapchat-Inspired Camera</title>
     <style>
         * {
@@ -18,12 +20,12 @@
             color: #fff;
             height: 100vh;
             overflow: hidden;
-            overscroll-behavior: none; /* Prevent pull-to-refresh */
+            overscroll-behavior: none;
         }
         #video-container {
             position: relative;
             width: 100%;
-            height: 100vh; /* Full-screen video */
+            height: 100vh;
             background: #000;
         }
         #video, #canvas {
@@ -32,11 +34,11 @@
             position: absolute;
             top: 0;
             left: 0;
-            object-fit: cover; /* Ensure video fills container */
+            object-fit: cover;
         }
         #canvas {
             z-index: 1;
-            transition: opacity 0.3s ease; /* Smooth filter transitions */
+            transition: opacity 0.3s ease;
         }
         #controls {
             position: fixed;
@@ -50,7 +52,7 @@
             max-width: 640px;
             z-index: 10;
             background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3));
-            backdrop-filter: blur(8px); /* Blurred overlay */
+            backdrop-filter: blur(8px);
             padding: 15px;
             border-radius: 30px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
@@ -82,7 +84,7 @@
         }
         button.active {
             background: rgba(255, 255, 255, 0.4);
-            border: 2px solid #fffc00; /* Snapchat yellow */
+            border: 2px solid #fffc00;
         }
         #capture {
             background: #fffc00;
@@ -149,19 +151,19 @@
         <div id="loading"><span class="spinner"></span> Loading...</div>
     </div>
     <div id="controls">
-        <button onclick="setFilter('none')" aria-label="Apply no filter" class="active">
+        <button onclick="setFilter('filter1')" aria-label="Apply Filter 1 (No effect)" class="active">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="12" y1="8" x2="12" y2="16"/>
                 <line x1="8" y1="12" x2="16" y2="12"/>
             </svg>
         </button>
-        <button onclick="setFilter('hearts')" aria-label="Apply random hearts filter">
+        <button onclick="setFilter('filter2')" aria-label="Apply Filter 2 (Random Hearts)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
-        <button onclick="setFilter('grayscale')" aria-label="Apply grayscale filter">
+        <button onclick="setFilter('filter3')" aria-label="Apply Filter 3 (Grayscale)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
                 <rect x="2" y="2" width="20" height="20" rx="2"/>
                 <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
@@ -179,9 +181,9 @@
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-        let currentFilter = 'none';
+        let currentFilter = 'filter1';
         let hearts = [];
-        const filters = ['none', 'hearts', 'grayscale'];
+        const filters = ['filter1', 'filter2', 'filter3'];
         let filterIndex = 0;
 
         // Debug: Confirm controls are rendered
@@ -220,21 +222,34 @@
             document.querySelectorAll('#controls button:not(#capture)').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
             canvas.style.opacity = '0.7';
-            setTimeout(() => { canvas.style.opacity = '1'; }, 300); // Filter transition
-            console.log('Filter set to:', filter);
+            setTimeout(() => { canvas.style.opacity = '1'; }, 300);
+            console.log(`Filter set to: ${filter}`);
         }
 
-        // Load heart image
-        const heartImg = new Image();
-        heartImg.src = './assets/heart.png';
-        heartImg.onload = () => console.log('heart.png loaded successfully.');
-        heartImg.onerror = () => {
-            console.error('Failed to load heart.png');
-            const loading = document.getElementById('loading');
-            loading.innerText = 'Error: Could not load heart image.';
-            document.querySelector('button[onclick="setFilter(\'hearts\')]').disabled = true;
-            setTimeout(() => { loading.style.display = 'none'; }, 3000);
-        };
+        // Load heart images
+        const heartImages = [
+            { src: './assets/heart.png', img: new Image(), loaded: false },
+            { src: './assets/color_heart.png', img: new Image(), loaded: false },
+            { src: './assets/heart-eyes.png', img: new Image(), loaded: false }
+        ];
+        let allHeartsLoaded = false;
+        heartImages.forEach((heart, index) => {
+            heart.img.src = heart.src;
+            heart.img.onload = () => {
+                heart.loaded = true;
+                console.log(`${heart.src} loaded successfully.`);
+                if (heartImages.every(h => h.loaded)) {
+                    allHeartsLoaded = true;
+                }
+            };
+            heart.img.onerror = () => {
+                console.error(`Failed to load ${heart.src}`);
+                const loading = document.getElementById('loading');
+                loading.innerText = `Error: Could not load ${heart.src}.`;
+                document.querySelector('button[onclick="setFilter(\'filter2\')]').disabled = true;
+                setTimeout(() => { loading.style.display = 'none'; }, 3000);
+            };
+        });
 
         // Heart object
         class Heart {
@@ -249,6 +264,11 @@
                 this.rotation = Math.random() * Math.PI * 2;
                 this.rotationSpeed = Math.random() * 0.05 - 0.025;
                 this.direction = Math.random() * 0.2 - 0.1;
+                // Randomly select a loaded heart image
+                const availableImages = heartImages.filter(h => h.loaded);
+                this.image = availableImages.length > 0
+                    ? availableImages[Math.floor(Math.random() * availableImages.length)].img
+                    : heartImages[0].img; // Fallback to first image if none loaded
             }
             update() {
                 this.y -= this.speed * Math.cos(this.direction);
@@ -262,7 +282,7 @@
                 ctx.globalAlpha = this.opacity;
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation);
-                ctx.drawImage(heartImg, -this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.drawImage(this.image, -this.size / 2, -this.size / 2, this.size, this.size);
                 ctx.restore();
             }
         }
@@ -271,7 +291,7 @@
         function render() {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            if (currentFilter === 'hearts' && heartImg.complete && heartImg.naturalWidth !== 0) {
+            if (currentFilter === 'filter2' && allHeartsLoaded) {
                 if (Math.random() < 0.05 && hearts.length < 15) {
                     hearts.push(new Heart());
                 }
@@ -280,7 +300,7 @@
                     heart.update();
                     heart.draw();
                 });
-            } else if (currentFilter === 'grayscale') {
+            } else if (currentFilter === 'filter3') {
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
                 const data = imageData.data;
                 for (let i = 0; i < data.length; i += 4) {
