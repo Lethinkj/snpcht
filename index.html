@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snapchat-Inspired Camera</title>
+    <title>DUMB-CAM</title>
     <style>
         * {
             box-sizing: border-box;
@@ -25,8 +25,11 @@
         #video-container {
             position: relative;
             width: 100%;
+            max-width: 100vw;
             height: 100vh;
+            max-height: 100vh;
             background: #000;
+            aspect-ratio: 9/16;
         }
         #video, #canvas {
             width: 100%;
@@ -35,25 +38,27 @@
             top: 0;
             left: 0;
             object-fit: cover;
+            z-index: 0;
         }
         #canvas {
             z-index: 1;
             transition: opacity 0.3s ease;
+            opacity: 1;
         }
         #controls {
             position: fixed;
-            bottom: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             justify-content: space-evenly;
             align-items: center;
             width: 90%;
-            max-width: 800px;
+            max-width: 900px;
             z-index: 10;
             background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
             backdrop-filter: blur(12px);
-            padding: 10px;
+            padding: 12px 8px;
             border-radius: 32px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             opacity: 0.9;
@@ -66,8 +71,8 @@
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: #fff;
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -75,6 +80,9 @@
             justify-content: center;
             transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
             outline: none;
+            padding: 8px;
+            margin: 0 4px;
+            touch-action: manipulation;
         }
         button:hover, button:focus {
             background: rgba(255, 255, 255, 0.35);
@@ -91,8 +99,8 @@
         #capture {
             background: #fffc00;
             color: #000;
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 64px;
             box-shadow: 0 0 15px rgba(255, 252, 0, 0.7);
         }
         #capture:active {
@@ -101,8 +109,8 @@
         #record {
             background: #ff0000;
             color: #fff;
-            width: 72px;
-            height: 72px;
+            width: 64px;
+            height: 64px;
             box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
         }
         #record.recording {
@@ -114,7 +122,7 @@
         }
         #recording-indicator {
             position: absolute;
-            top: 20px;
+            top: calc(20px + env(safe-area-inset-top));
             left: 20px;
             display: none;
             align-items: center;
@@ -122,7 +130,7 @@
             background: rgba(0, 0, 0, 0.8);
             padding: 8px 14px;
             border-radius: 16px;
-            font-size: 16px;
+            font-size: 14px;
             z-index: 5;
         }
         #recording-dot {
@@ -144,8 +152,8 @@
         }
         #recording-progress {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -155,15 +163,15 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 18px;
+            font-size: 16px;
             z-index: 5;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .spinner {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border: 3px solid #fff;
             border-top-color: #fffc00;
             border-radius: 50%;
@@ -192,43 +200,48 @@
         }
         #filter-label {
             position: absolute;
-            bottom: 120px;
+            bottom: calc(100px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.8);
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 24px;
-            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
             opacity: 0;
             transition: opacity 0.3s ease;
+            z-index: 5;
         }
         #filter-label.show {
             opacity: 1;
         }
         @media (max-width: 600px) {
-            button { width: 44px; height: 44px; }
-            #capture, #record { width: 64px; height: 64px; }
+            button { width: 40px; height: 40px; }
+            #capture, #record { width: 56px; height: 56px; }
             #controls { 
                 padding: 8px; 
                 max-width: 95%; 
-                gap: 4px; 
-                bottom: 10px; 
+                gap: 6px; 
+                bottom: calc(15px + env(safe-area-inset-bottom)); 
             }
             #filter-label { 
-                font-size: 14px; 
-                padding: 8px 16px; 
-                bottom: 100px; 
+                font-size: 12px; 
+                padding: 6px 12px; 
+                bottom: calc(90px + env(safe-area-inset-bottom)); 
             }
             #recording-indicator { 
-                font-size: 14px; 
+                font-size: 12px; 
                 padding: 6px 12px; 
+                top: calc(15px + env(safe-area-inset-top)); 
             }
         }
         @media (min-width: 601px) {
             button { width: 52px; height: 52px; }
-            #capture, #record { width: 80px; height: 80px; }
+            #capture, #record { width: 72px; height: 72px; }
+            #controls { max-width: 900px; padding: 12px; }
+            #filter-label { font-size: 16px; bottom: 140px; }
+            #recording-indicator { font-size: 16px; }
         }
     </style>
 </head>
@@ -242,54 +255,54 @@
         <div id="recording-indicator">
             <span id="recording-dot"></span>
             <span id="recording-timer">00:00</span>
-            <canvas id="recording-progress" width="40" height="40"></canvas>
+            <canvas id="recording-progress" width="36" height="36"></canvas>
         </div>
     </div>
     <div id="controls">
         <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
         <button id="filter2-btn" onclick="toggleFilter('filter2')" aria-label="Apply Filter 2 (Heart)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
         <button id="filter3-btn" onclick="toggleFilter('filter3')" aria-label="Apply Filter 3 (Heart Eyes)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
         <button id="filter4-btn" onclick="toggleFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
                 <rect x="2" y="2" width="20" height="20" rx="2"/>
                 <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
             </svg>
         </button>
         <button id="filter5-btn" onclick="toggleFilter('filter5')" aria-label="Apply Filter 5 (Grayscale + Heart)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
         <button id="filter6-btn" onclick="toggleFilter('filter6')" aria-label="Apply Filter 6 (Grayscale + Color Heart)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
         <button id="filter7-btn" onclick="toggleFilter('filter7')" aria-label="Apply Filter 7 (Grayscale + Heart Eyes)">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
         <button id="capture" onclick="capturePhoto()" aria-label="Capture photo">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2">
                 <circle cx="12" cy="12" r="10"/>
                 <circle cx="12" cy="12" r="6" fill="#000"/>
             </svg>
         </button>
         <button id="record" onclick="toggleRecording()" aria-label="Start recording">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="#fff">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <circle cx="12" cy="12" r="8"/>
             </svg>
         </button>
@@ -380,32 +393,33 @@
             constructor(filter) {
                 this.x = Math.random() * canvas.width;
                 this.y = canvas.height;
-                this.opacity = 0;
-                this.speed = Math.random() * 1 + 0.5;
+                this.speed = Math.random() * 1.5 + 0.5; // 0.5–2px/frame
                 this.baseSize = Math.random() * 20 + 40; // 40–60px
                 this.size = this.baseSize;
                 this.angle = Math.random() * Math.PI * 2;
-                this.driftSpeed = Math.random() * 0.3 - 0.15;
+                this.driftSpeed = Math.random() * 0.2 - 0.1;
                 this.rotation = Math.random() * Math.PI * 2;
-                this.rotationSpeed = Math.random() * 0.03 - 0.015;
-                this.direction = Math.random() * 0.1 - 0.05;
+                this.rotationSpeed = Math.random() * 0.02 - 0.01;
                 this.scaleFactor = 1;
-                this.scaleDirection = 0.02;
+                this.scaleDirection = 0.01;
                 this.image = heartImages[filter]?.loaded ? heartImages[filter].img : null;
                 console.log(`Heart created for ${filter}: ${this.image ? this.image.src : 'fallback'}`);
             }
             update() {
-                this.y -= this.speed * Math.cos(this.direction);
-                this.x += this.driftSpeed + Math.sin(this.angle) * 1.5;
-                this.angle += 0.03;
-                this.opacity = Math.min(this.opacity + 0.02, 1);
-                if (this.y < canvas.height / 2) {
-                    this.opacity = Math.max(this.opacity - 0.01, 0);
-                }
+                this.y -= this.speed;
+                this.x += this.driftSpeed + Math.sin(this.angle) * 1;
+                this.angle += 0.02;
                 this.rotation += this.rotationSpeed;
                 this.scaleFactor += this.scaleDirection;
-                if (this.scaleFactor > 1.1 || this.scaleFactor < 0.9) this.scaleDirection *= -1;
+                if (this.scaleFactor > 1.05 || this.scaleFactor < 0.95) this.scaleDirection *= -1;
                 this.size = this.baseSize * this.scaleFactor;
+                // Transparency: Opaque until mid-screen, fade to transparent at top
+                if (this.y < canvas.height / 2) {
+                    this.opacity = 1 - (canvas.height / 2 - this.y) / (canvas.height / 2);
+                    this.opacity = Math.max(0, Math.min(1, this.opacity));
+                } else {
+                    this.opacity = 1;
+                }
             }
             draw() {
                 ctx.save();
@@ -420,6 +434,7 @@
                     drawFallbackHeart(0, 0, this.size);
                 }
                 ctx.restore();
+                console.log(`Heart drawn: x=${this.x}, y=${this.y}, opacity=${this.opacity}`);
             }
         }
 
@@ -429,10 +444,10 @@
                 .then(stream => {
                     video.srcObject = stream;
                     video.onloadedmetadata = () => {
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
+                        canvas.width = Math.min(video.videoWidth, 1280);
+                        canvas.height = Math.min(video.videoHeight, 720);
                         ctx.imageSmoothingEnabled = true;
-                        console.log('Camera started');
+                        console.log(`Canvas set: ${canvas.width}x${canvas.height}`);
                         loading.style.display = 'none';
                         render();
                     };
@@ -472,26 +487,33 @@
         }
 
         // Render loop
-        function render() {
+        let lastFrame = 0;
+        function render(timestamp) {
+            if (timestamp - lastFrame < 16) {
+                requestAnimationFrame(render);
+                return;
+            }
+            lastFrame = timestamp;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             if (currentFilter) {
                 const isGrayscale = ['filter4', 'filter5', 'filter6', 'filter7'].includes(currentFilter);
                 if (isGrayscale) {
-                    ctx.filter = 'grayscale(100%) contrast(1.1) brightness(1.05)';
+                    ctx.filter = 'grayscale(100%) contrast(1.2) brightness(1.1)';
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     ctx.filter = 'none';
                 }
                 if (['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
-                    if (Math.random() < 0.1 && hearts.length < 10) {
+                    if (Math.random() < 0.08 && hearts.length < 8) {
                         hearts.push(new Heart(currentFilter));
                     }
-                    hearts = hearts.filter(heart => heart.opacity > 0 && heart.y > -heart.size);
+                    hearts = hearts.filter(heart => heart.y > -heart.size && heart.opacity > 0);
                     hearts.forEach(heart => {
                         heart.update();
                         heart.draw();
                     });
+                    console.log(`Rendering ${hearts.length} hearts`);
                 }
             }
 
@@ -547,7 +569,7 @@
             };
             mediaRecorder.start();
             recordButton.classList.add('recording');
-            recordButton.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="#ff0000"><rect x="6" y="6" width="12" height="12"/></svg>';
+            recordButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ff0000"><rect x="6" y="6" width="12" height="12"/></svg>';
             recordingIndicator.style.display = 'flex';
             recordingStartTime = Date.now();
             updateTimer();
@@ -561,7 +583,7 @@
         function stopRecording() {
             mediaRecorder.stop();
             recordButton.classList.remove('recording');
-            recordButton.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="8"/></svg>';
+            recordButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="8"/></svg>';
             recordingIndicator.style.display = 'none';
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             console.log('Recording stopped');
@@ -573,15 +595,12 @@
                 const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
                 const seconds = String(elapsed % 60).padStart(2, '0');
                 recordingTimer.textContent = `${minutes}:${seconds}`;
-                
-                // Draw progress arc
-                progressCtx.clearRect(0, 0, 40, 40);
+                progressCtx.clearRect(0, 0, 36, 36);
                 progressCtx.beginPath();
-                progressCtx.arc(20, 20, 18, -Math.PI / 2, (elapsed / maxRecordingTime) * 2 * Math.PI - Math.PI / 2);
+                progressCtx.arc(18, 18, 16, -Math.PI / 2, (elapsed / maxRecordingTime) * 2 * Math.PI - Math.PI / 2);
                 progressCtx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
                 progressCtx.lineWidth = 2;
                 progressCtx.stroke();
-                
                 requestAnimationFrame(updateTimer);
             }
         }
@@ -606,7 +625,7 @@
         video.addEventListener('touchend', e => {
             const touchEndX = e.changedTouches[0].clientX;
             const deltaX = touchEndX - touchStartX;
-            if (deltaX > 80) {
+            if (deltaX > 50) {
                 if (currentFilter === null) {
                     filterIndex = filters.length - 1;
                     toggleFilter(filters[filterIndex]);
@@ -614,9 +633,9 @@
                     filterIndex--;
                     toggleFilter(filters[filterIndex]);
                 } else {
-                    toggleFilter(currentFilter); // Toggle off
+                    toggleFilter(currentFilter);
                 }
-            } else if (deltaX < -80) {
+            } else if (deltaX < -50) {
                 if (currentFilter === null) {
                     filterIndex = 0;
                     toggleFilter(filters[filterIndex]);
@@ -624,7 +643,7 @@
                     filterIndex++;
                     toggleFilter(filters[filterIndex]);
                 } else {
-                    toggleFilter(currentFilter); // Toggle off
+                    toggleFilter(currentFilter);
                 }
             }
         });
