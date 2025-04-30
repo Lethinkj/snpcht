@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Snapchat-Inspired Camera</title>
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
         body {
-            margin: 0;
             font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
             display: flex;
             flex-direction: column;
@@ -19,6 +20,7 @@
             height: 100vh;
             overflow: hidden;
             overscroll-behavior: none;
+            touch-action: manipulation;
         }
         #video-container {
             position: relative;
@@ -47,21 +49,21 @@
             justify-content: space-evenly;
             align-items: center;
             width: 90%;
-            max-width: 900px;
+            max-width: 800px;
             z-index: 10;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3));
-            backdrop-filter: blur(10px);
-            padding: 12px;
-            border-radius: 30px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-            opacity: 0.8;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
+            backdrop-filter: blur(12px);
+            padding: 10px;
+            border-radius: 32px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            opacity: 0.9;
             transition: opacity 0.3s ease;
         }
         #controls.active {
             opacity: 1;
         }
         button {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.2);
             border: none;
             color: #fff;
             width: 48px;
@@ -72,17 +74,18 @@
             align-items: center;
             justify-content: center;
             transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+            outline: none;
         }
-        button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.15);
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        button:hover, button:focus {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
         }
         button:active {
             transform: scale(0.95);
         }
         button.active {
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.5);
             border: 2px solid #fffc00;
         }
         #capture {
@@ -90,7 +93,7 @@
             color: #000;
             width: 72px;
             height: 72px;
-            box-shadow: 0 0 12px rgba(255, 252, 0, 0.6);
+            box-shadow: 0 0 15px rgba(255, 252, 0, 0.7);
         }
         #capture:active {
             background: #e6e300;
@@ -100,7 +103,7 @@
             color: #fff;
             width: 72px;
             height: 72px;
-            box-shadow: 0 0 12px rgba(255, 0, 0, 0.6);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
         }
         #record.recording {
             background: #fff;
@@ -116,23 +119,36 @@
             display: none;
             align-items: center;
             gap: 8px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 14px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 8px 14px;
+            border-radius: 16px;
+            font-size: 16px;
             z-index: 5;
         }
         #recording-dot {
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             background: #ff0000;
             border-radius: 50%;
-            animation: pulse 1s infinite;
+            animation: pulse 1.2s infinite ease-in-out;
         }
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
+            50% { transform: scale(1.4); }
             100% { transform: scale(1); }
+        }
+        #recording-timer {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        #recording-progress {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
         #loading {
             position: absolute;
@@ -168,22 +184,23 @@
             pointer-events: none;
         }
         .flash-effect {
-            animation: flash 0.2s ease;
+            animation: flash 0.25s ease;
         }
         @keyframes flash {
-            0% { opacity: 0.9; }
+            0% { opacity: 0.95; }
             100% { opacity: 0; }
         }
         #filter-label {
             position: absolute;
-            bottom: 100px;
+            bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.8);
             color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 16px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -191,15 +208,33 @@
             opacity: 1;
         }
         @media (max-width: 600px) {
-            button { width: 42px; height: 42px; }
+            button { width: 44px; height: 44px; }
             #capture, #record { width: 64px; height: 64px; }
-            #controls { padding: 10px; max-width: 700px; }
+            #controls { 
+                padding: 8px; 
+                max-width: 95%; 
+                gap: 4px; 
+                bottom: 10px; 
+            }
+            #filter-label { 
+                font-size: 14px; 
+                padding: 8px 16px; 
+                bottom: 100px; 
+            }
+            #recording-indicator { 
+                font-size: 14px; 
+                padding: 6px 12px; 
+            }
+        }
+        @media (min-width: 601px) {
+            button { width: 52px; height: 52px; }
+            #capture, #record { width: 80px; height: 80px; }
         }
     </style>
 </head>
 <body>
     <div id="video-container">
-        <video id="video" autoplay></video>
+        <video id="video" autoplay playsinline></video>
         <canvas id="canvas"></canvas>
         <div id="flash"></div>
         <div id="loading"><span class="spinner"></span> Loading...</div>
@@ -207,6 +242,7 @@
         <div id="recording-indicator">
             <span id="recording-dot"></span>
             <span id="recording-timer">00:00</span>
+            <canvas id="recording-progress" width="40" height="40"></canvas>
         </div>
     </div>
     <div id="controls">
@@ -271,18 +307,20 @@
         const recordButton = document.getElementById('record');
         const recordingIndicator = document.getElementById('recording-indicator');
         const recordingTimer = document.getElementById('recording-timer');
+        const recordingProgress = document.getElementById('recording-progress');
+        const progressCtx = recordingProgress.getContext('2d');
 
         // Filter state
-        let currentFilter = 'filter1'; // Start with Filter 1 active
+        let currentFilter = 'filter1';
         let hearts = [];
         const filters = ['filter1', 'filter2', 'filter3', 'filter4', 'filter5', 'filter6', 'filter7'];
-        let filterIndex = 0; // Start at Filter 1
+        let filterIndex = 0;
 
         // Recording state
         let mediaRecorder;
         let recordedChunks = [];
         let recordingStartTime;
-        const maxRecordingTime = 60; // seconds
+        const maxRecordingTime = 60; // 1 minute
 
         // Filter descriptions
         const filterDescriptions = {
@@ -324,6 +362,8 @@
         function drawFallbackHeart(x, y, size) {
             ctx.save();
             ctx.fillStyle = 'red';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.shadowBlur = 5;
             ctx.beginPath();
             ctx.moveTo(x, y + size / 4);
             ctx.quadraticCurveTo(x - size / 2, y - size / 4, x, y - size / 2);
@@ -340,29 +380,40 @@
             constructor(filter) {
                 this.x = Math.random() * canvas.width;
                 this.y = canvas.height;
-                this.opacity = 1;
-                this.speed = Math.random() * 1.5 + 0.5;
-                this.size = Math.random() * 50 + 30;
+                this.opacity = 0;
+                this.speed = Math.random() * 1 + 0.5;
+                this.baseSize = Math.random() * 20 + 40; // 40–60px
+                this.size = this.baseSize;
                 this.angle = Math.random() * Math.PI * 2;
-                this.driftSpeed = Math.random() * 0.5 - 0.25;
+                this.driftSpeed = Math.random() * 0.3 - 0.15;
                 this.rotation = Math.random() * Math.PI * 2;
-                this.rotationSpeed = Math.random() * 0.05 - 0.025;
-                this.direction = Math.random() * 0.2 - 0.1;
+                this.rotationSpeed = Math.random() * 0.03 - 0.015;
+                this.direction = Math.random() * 0.1 - 0.05;
+                this.scaleFactor = 1;
+                this.scaleDirection = 0.02;
                 this.image = heartImages[filter]?.loaded ? heartImages[filter].img : null;
                 console.log(`Heart created for ${filter}: ${this.image ? this.image.src : 'fallback'}`);
             }
             update() {
                 this.y -= this.speed * Math.cos(this.direction);
-                this.x += this.driftSpeed + Math.sin(this.angle) * 2;
-                this.angle += 0.05;
-                this.opacity -= 0.005;
+                this.x += this.driftSpeed + Math.sin(this.angle) * 1.5;
+                this.angle += 0.03;
+                this.opacity = Math.min(this.opacity + 0.02, 1);
+                if (this.y < canvas.height / 2) {
+                    this.opacity = Math.max(this.opacity - 0.01, 0);
+                }
                 this.rotation += this.rotationSpeed;
+                this.scaleFactor += this.scaleDirection;
+                if (this.scaleFactor > 1.1 || this.scaleFactor < 0.9) this.scaleDirection *= -1;
+                this.size = this.baseSize * this.scaleFactor;
             }
             draw() {
                 ctx.save();
                 ctx.globalAlpha = this.opacity;
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation);
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 5;
                 if (this.image) {
                     ctx.drawImage(this.image, -this.size / 2, -this.size / 2, this.size, this.size);
                 } else {
@@ -374,12 +425,13 @@
 
         // Start video stream
         function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: true })
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
                 .then(stream => {
                     video.srcObject = stream;
                     video.onloadedmetadata = () => {
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
+                        ctx.imageSmoothingEnabled = true;
                         console.log('Camera started');
                         loading.style.display = 'none';
                         render();
@@ -427,12 +479,12 @@
             if (currentFilter) {
                 const isGrayscale = ['filter4', 'filter5', 'filter6', 'filter7'].includes(currentFilter);
                 if (isGrayscale) {
-                    ctx.filter = 'grayscale(100%)';
+                    ctx.filter = 'grayscale(100%) contrast(1.1) brightness(1.05)';
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     ctx.filter = 'none';
                 }
                 if (['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
-                    if (Math.random() < 0.05 && hearts.length < 15) {
+                    if (Math.random() < 0.1 && hearts.length < 10) {
                         hearts.push(new Heart(currentFilter));
                     }
                     hearts = hearts.filter(heart => heart.opacity > 0 && heart.y > -heart.size);
@@ -449,8 +501,8 @@
         // Capture photo
         function capturePhoto() {
             flash.classList.add('flash-effect');
-            setTimeout(() => { flash.classList.remove('flash-effect'); }, 200);
-            if ('vibrate' in navigator) navigator.vibrate(50);
+            setTimeout(() => { flash.classList.remove('flash-effect'); }, 250);
+            if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             const link = document.createElement('a');
             link.download = 'snapchat-photo.png';
             link.href = canvas.toDataURL('image/png');
@@ -499,7 +551,7 @@
             recordingIndicator.style.display = 'flex';
             recordingStartTime = Date.now();
             updateTimer();
-            if ('vibrate' in navigator) navigator.vibrate(50);
+            if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             console.log('Recording started');
             setTimeout(() => {
                 if (mediaRecorder.state === 'recording') stopRecording();
@@ -511,7 +563,7 @@
             recordButton.classList.remove('recording');
             recordButton.innerHTML = '<svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="8"/></svg>';
             recordingIndicator.style.display = 'none';
-            if ('vibrate' in navigator) navigator.vibrate(50);
+            if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             console.log('Recording stopped');
         }
 
@@ -521,6 +573,15 @@
                 const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
                 const seconds = String(elapsed % 60).padStart(2, '0');
                 recordingTimer.textContent = `${minutes}:${seconds}`;
+                
+                // Draw progress arc
+                progressCtx.clearRect(0, 0, 40, 40);
+                progressCtx.beginPath();
+                progressCtx.arc(20, 20, 18, -Math.PI / 2, (elapsed / maxRecordingTime) * 2 * Math.PI - Math.PI / 2);
+                progressCtx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                progressCtx.lineWidth = 2;
+                progressCtx.stroke();
+                
                 requestAnimationFrame(updateTimer);
             }
         }
@@ -540,11 +601,12 @@
         let touchStartX = 0;
         video.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
+            e.preventDefault();
         });
         video.addEventListener('touchend', e => {
             const touchEndX = e.changedTouches[0].clientX;
             const deltaX = touchEndX - touchStartX;
-            if (deltaX > 50) {
+            if (deltaX > 80) {
                 if (currentFilter === null) {
                     filterIndex = filters.length - 1;
                     toggleFilter(filters[filterIndex]);
@@ -554,7 +616,7 @@
                 } else {
                     toggleFilter(currentFilter); // Toggle off
                 }
-            } else if (deltaX < -50) {
+            } else if (deltaX < -80) {
                 if (currentFilter === null) {
                     filterIndex = 0;
                     toggleFilter(filters[filterIndex]);
@@ -566,6 +628,23 @@
                 }
             }
         });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.key >= '1' && e.key <= '7') {
+                toggleFilter(`filter${e.key}`);
+            } else if (e.key === ' ') {
+                capturePhoto();
+            } else if (e.key.toLowerCase() === 'r') {
+                toggleRecording();
+            }
+        });
+
+        // Prevent pinch zoom
+        document.addEventListener('gesturestart', e => e.preventDefault());
+        document.addEventListener('touchmove', e => {
+            if (e.touches.length > 1) e.preventDefault();
+        }, { passive: false });
 
         // Initialize
         if (controls) {
