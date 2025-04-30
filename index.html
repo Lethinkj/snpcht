@@ -79,12 +79,15 @@
     </div>
     <div id="controls">
         <button onclick="setFilter('none')">None</button>
-        <button onclick="setFilter('hearts')">Random Hearts</button>
+        <button onclick="setFilter('hearts')">Flying Hearts</button>
+        <button onclick="setFilter('sunglasses')">Sunglasses</button>
+        <button onclick="setFilter('dog')">Dog Ears</button>
+        <button onclick="setFilter('flowers')">Flower Crown</button>
         <button onclick="setFilter('grayscale')">Grayscale</button>
         <button id="capture" onclick="capturePhoto()">📸</button>
     </div>
 
-    <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/0.22.2/face-api.min.js" defer></script>
     <script>
         let faceApiLoaded = false;
         const video = document.getElementById('video');
@@ -96,8 +99,9 @@
         // Debug: Check if faceApi is defined
         window.addEventListener('load', () => {
             if (typeof faceApi === 'undefined') {
-                console.error('faceApi is not defined. Running in fallback mode (grayscale and random hearts only).');
+                console.error('faceApi is not defined. Running in fallback mode (grayscale only).');
                 document.getElementById('loading').innerText = 'Face detection unavailable. Using basic filters.';
+                alert('face-api.js failed to load from cdnjs. Using basic filters.');
                 faceApiLoaded = false;
                 startVideo();
             } else {
@@ -107,14 +111,14 @@
             }
         });
 
-        // Load face-api.js models from ./models/
+        // Load face-api.js models
         async function loadModels() {
             try {
-                await faceApi.nets.tinyFaceDetector.loadFromUri('./models/').catch(err => {
+                await faceApi.nets.tinyFaceDetector.loadFromUri('/snpcht/models/').catch(err => {
                     console.error('Failed to load tinyFaceDetector:', err);
                     throw err;
                 });
-                await faceApi.nets.faceLandmark68Net.loadFromUri('./models/').catch(err => {
+                await faceApi.nets.faceLandmark68Net.loadFromUri('/snpcht/models/').catch(err => {
                     console.error('Failed to load faceLandmark68Net:', err);
                     throw err;
                 });
@@ -124,7 +128,7 @@
             } catch (err) {
                 console.error('Model loading failed:', err);
                 document.getElementById('loading').innerText = 'Face detection unavailable. Using basic filters.';
-                alert('Failed to load face detection models. Using basic filters.');
+                alert('Failed to load models. Using basic filters.');
                 faceApiLoaded = false;
                 startVideo();
             }
@@ -152,14 +156,20 @@
         // Set filter
         function setFilter(filter) {
             currentFilter = filter;
-            hearts = []; // Reset hearts
+            hearts = [];
         }
 
-        // Load heart image from ./assets/
+        // Load filter images
+        const sunglassesImg = new Image();
+        sunglassesImg.src = '/snpcht/assets/sunglasses.png';
+        const dogEarsImg = new Image();
+        dogEarsImg.src = '/snpcht/assets/dog-ears.png';
+        const flowerCrownImg = new Image();
+        flowerCrownImg.src = '/snpcht/assets/flower-crown.png';
         const heartImg = new Image();
-        heartImg.src = './assets/heart.png';
+        heartImg.src = '/snpcht/assets/heart.png';
 
-        // Heart object for Random Hearts filter
+        // Heart object
         class Heart {
             constructor(x, y) {
                 this.x = x || Math.random() * canvas.width;
@@ -203,13 +213,27 @@
                                 heart.update();
                                 heart.draw();
                             });
+                        } else if (currentFilter === 'sunglasses') {
+                            const eyeLeft = landmarks.getLeftEye()[0];
+                            const eyeRight = landmarks.getRightEye()[3];
+                            const eyeDistance = Math.hypot(eyeRight.x - eyeLeft.x, eyeRight.y - eyeLeft.y);
+                            const angle = Math.atan2(eyeRight.y - eyeLeft.y, eyeRight.x - eyeLeft.x);
+                            ctx.save();
+                            ctx.translate(eyeLeft.x, eyeLeft.y);
+                            ctx.rotate(angle);
+                            ctx.drawImage(sunglassesImg, 0, -eyeDistance * 0.3, eyeDistance * 1.5, eyeDistance * 0.6);
+                            ctx.restore();
+                        } else if (currentFilter === 'dog') {
+                            ctx.drawImage(dogEarsImg, forehead.x - headWidth * 0.6, forehead.y - headHeight * 0.8, headWidth * 1.2, headHeight * 0.6);
+                        } else if (currentFilter === 'flowers') {
+                            ctx.drawImage(flowerCrownImg, forehead.x - headWidth * 0.6, forehead.y - headHeight * 0.5, headWidth * 1.2, headHeight * 0.4);
                         }
                     });
                 } catch (err) {
                     console.error('Face detection failed:', err);
                 }
             } else if (currentFilter === 'hearts') {
-                // Fallback: Random hearts across the canvas
+                // Fallback: Random hearts
                 if (Math.random() < 0.1) {
                     hearts.push(new Heart());
                 }
