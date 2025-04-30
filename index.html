@@ -79,60 +79,17 @@
     </div>
     <div id="controls">
         <button onclick="setFilter('none')">None</button>
-        <button onclick="setFilter('hearts')">Flying Hearts</button>
-        <button onclick="setFilter('sunglasses')">Sunglasses</button>
-        <button onclick="setFilter('dog')">Dog Ears</button>
-        <button onclick="setFilter('flowers')">Flower Crown</button>
+        <button onclick="setFilter('hearts')">Random Hearts</button>
         <button onclick="setFilter('grayscale')">Grayscale</button>
         <button id="capture" onclick="capturePhoto()">📸</button>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/0.22.2/face-api.min.js" defer></script>
     <script>
-        let faceApiLoaded = false;
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         let currentFilter = 'none';
         let hearts = [];
-
-        // Debug: Check if faceApi is defined
-        window.addEventListener('load', () => {
-            if (typeof faceApi === 'undefined') {
-                console.error('faceApi is not defined. Running in fallback mode (grayscale only).');
-                document.getElementById('loading').innerText = 'Face detection unavailable. Using basic filters.';
-                alert('face-api.js failed to load from cdnjs. Using basic filters.');
-                faceApiLoaded = false;
-                startVideo();
-            } else {
-                console.log('faceApi is defined. Loading models.');
-                faceApiLoaded = true;
-                loadModels();
-            }
-        });
-
-        // Load face-api.js models
-        async function loadModels() {
-            try {
-                await faceApi.nets.tinyFaceDetector.loadFromUri('/snpcht/models/').catch(err => {
-                    console.error('Failed to load tinyFaceDetector:', err);
-                    throw err;
-                });
-                await faceApi.nets.faceLandmark68Net.loadFromUri('/snpcht/models/').catch(err => {
-                    console.error('Failed to load faceLandmark68Net:', err);
-                    throw err;
-                });
-                console.log('Models loaded successfully.');
-                document.getElementById('loading').style.display = 'none';
-                startVideo();
-            } catch (err) {
-                console.error('Model loading failed:', err);
-                document.getElementById('loading').innerText = 'Face detection unavailable. Using basic filters.';
-                alert('Failed to load models. Using basic filters.');
-                faceApiLoaded = false;
-                startVideo();
-            }
-        }
 
         // Start video stream
         function startVideo() {
@@ -143,6 +100,7 @@
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
                         console.log('Camera started.');
+                        document.getElementById('loading').style.display = 'none';
                         render();
                     };
                 })
@@ -159,21 +117,19 @@
             hearts = [];
         }
 
-        // Load filter images
-        const sunglassesImg = new Image();
-        sunglassesImg.src = '/snpcht/assets/sunglasses.png';
-        const dogEarsImg = new Image();
-        dogEarsImg.src = '/snpcht/assets/dog-ears.png';
-        const flowerCrownImg = new Image();
-        flowerCrownImg.src = '/snpcht/assets/flower-crown.png';
+        // Load heart image
         const heartImg = new Image();
         heartImg.src = '/snpcht/assets/heart.png';
+        heartImg.onerror = () => {
+            console.error('Failed to load heart.png');
+            document.getElementById('loading').innerText = 'Error: Could not load heart image.';
+        };
 
         // Heart object
         class Heart {
-            constructor(x, y) {
-                this.x = x || Math.random() * canvas.width;
-                this.y = y || canvas.height;
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
                 this.opacity = 1;
                 this.speed = Math.random() * 2 + 1;
                 this.size = Math.random() * 20 + 20;
@@ -190,50 +146,10 @@
         }
 
         // Render loop
-        async function render() {
+        function render() {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            if (faceApiLoaded && currentFilter !== 'none' && currentFilter !== 'grayscale') {
-                try {
-                    const detections = await faceApi.detectAllFaces(video, new faceApi.TinyFaceDetectorOptions())
-                        .withFaceLandmarks();
-                    
-                    detections.forEach(detection => {
-                        const landmarks = detection.landmarks;
-                        const forehead = landmarks.getNose()[0];
-                        const headWidth = detection.box.width;
-                        const headHeight = detection.box.height;
-
-                        if (currentFilter === 'hearts') {
-                            if (Math.random() < 0.1) {
-                                hearts.push(new Heart(forehead.x, forehead.y - headHeight * 0.3));
-                            }
-                            hearts = hearts.filter(heart => heart.opacity > 0);
-                            hearts.forEach(heart => {
-                                heart.update();
-                                heart.draw();
-                            });
-                        } else if (currentFilter === 'sunglasses') {
-                            const eyeLeft = landmarks.getLeftEye()[0];
-                            const eyeRight = landmarks.getRightEye()[3];
-                            const eyeDistance = Math.hypot(eyeRight.x - eyeLeft.x, eyeRight.y - eyeLeft.y);
-                            const angle = Math.atan2(eyeRight.y - eyeLeft.y, eyeRight.x - eyeLeft.x);
-                            ctx.save();
-                            ctx.translate(eyeLeft.x, eyeLeft.y);
-                            ctx.rotate(angle);
-                            ctx.drawImage(sunglassesImg, 0, -eyeDistance * 0.3, eyeDistance * 1.5, eyeDistance * 0.6);
-                            ctx.restore();
-                        } else if (currentFilter === 'dog') {
-                            ctx.drawImage(dogEarsImg, forehead.x - headWidth * 0.6, forehead.y - headHeight * 0.8, headWidth * 1.2, headHeight * 0.6);
-                        } else if (currentFilter === 'flowers') {
-                            ctx.drawImage(flowerCrownImg, forehead.x - headWidth * 0.6, forehead.y - headHeight * 0.5, headWidth * 1.2, headHeight * 0.4);
-                        }
-                    });
-                } catch (err) {
-                    console.error('Face detection failed:', err);
-                }
-            } else if (currentFilter === 'hearts') {
-                // Fallback: Random hearts
+            if (currentFilter === 'hearts') {
                 if (Math.random() < 0.1) {
                     hearts.push(new Heart());
                 }
@@ -262,6 +178,9 @@
             link.href = canvas.toDataURL('image/png');
             link.click();
         }
+
+        // Initialize
+        startVideo();
     </script>
 </body>
 </html>
