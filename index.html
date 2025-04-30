@@ -149,19 +149,22 @@
         <div id="loading"><span class="spinner"></span> Loading...</div>
     </div>
     <div id="controls">
-        <button onclick="setFilter('filter1')" aria-label="Apply Filter 1 (No effect)" class="active">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="12" y1="8" x2="12" y2="16"/>
-                <line x1="8" y1="12" x2="16" y2="12"/>
-            </svg>
-        </button>
-        <button onclick="setFilter('filter2')" aria-label="Apply Filter 2 (Random Hearts)">
+        <button onclick="setFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
-        <button onclick="setFilter('filter3')" aria-label="Apply Filter 3 (Grayscale)">
+        <button onclick="setFilter('filter2')" aria-label="Apply Filter 2 (Heart)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        </button>
+        <button onclick="setFilter('filter3')" aria-label="Apply Filter 3 (Heart Eyes)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+        </button>
+        <button onclick="setFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
                 <rect x="2" y="2" width="20" height="20" rx="2"/>
                 <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
@@ -187,24 +190,22 @@
         // Filter state
         let currentFilter = 'filter1';
         let hearts = [];
-        const filters = ['filter1', 'filter2', 'filter3'];
+        const filters = ['filter1', 'filter2', 'filter3', 'filter4'];
         let filterIndex = 0;
 
-        // Heart images
-        const heartImages = [
-            { src: './assets/heart.png', img: new Image(), loaded: false },
-            { src: './assets/color_heart.png', img: new Image(), loaded: false },
-            { src: './assets/heart-eyes.png', img: new Image(), loaded: false }
-        ];
-        let loadedImages = [];
+        // Heart images for each filter
+        const heartImages = {
+            filter1: { src: './assets/color_heart.png', img: new Image(), loaded: false },
+            filter2: { src: './assets/heart.png', img: new Image(), loaded: false },
+            filter3: { src: './assets/heart-eyes.png', img: new Image(), loaded: false }
+        };
 
         // Load heart images
-        heartImages.forEach(heart => {
+        Object.values(heartImages).forEach(heart => {
             heart.img.src = heart.src;
             heart.img.onload = () => {
                 heart.loaded = true;
-                loadedImages.push(heart.img);
-                console.log(`Loaded: ${heart.src}, Total loaded: ${loadedImages.length}`);
+                console.log(`Loaded: ${heart.src}`);
             };
             heart.img.onerror = () => {
                 console.error(`Failed to load: ${heart.src}`);
@@ -230,7 +231,7 @@
 
         // Heart class
         class Heart {
-            constructor() {
+            constructor(filter) {
                 this.x = Math.random() * canvas.width;
                 this.y = canvas.height;
                 this.opacity = 1;
@@ -241,10 +242,8 @@
                 this.rotation = Math.random() * Math.PI * 2;
                 this.rotationSpeed = Math.random() * 0.05 - 0.025;
                 this.direction = Math.random() * 0.2 - 0.1;
-                this.image = loadedImages.length > 0
-                    ? loadedImages[Math.floor(Math.random() * loadedImages.length)]
-                    : null;
-                console.log(`Heart created with image: ${this.image ? this.image.src : 'fallback'}`);
+                this.image = heartImages[filter].loaded ? heartImages[filter].img : null;
+                console.log(`Heart created for ${filter}: ${this.image ? this.image.src : 'fallback'}`);
             }
             update() {
                 this.y -= this.speed * Math.cos(this.direction);
@@ -290,7 +289,7 @@
         function setFilter(filter) {
             currentFilter = filter;
             filterIndex = filters.indexOf(filter);
-            hearts = [];
+            hearts = []; // Clear hearts when switching filters
             document.querySelectorAll('#controls button:not(#capture)').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
             canvas.style.opacity = '0.7';
@@ -300,18 +299,19 @@
 
         // Render loop
         function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas to prevent mixing
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            if (currentFilter === 'filter2') {
+            if (['filter1', 'filter2', 'filter3'].includes(currentFilter)) {
                 if (Math.random() < 0.05 && hearts.length < 15) {
-                    hearts.push(new Heart());
+                    hearts.push(new Heart(currentFilter));
                 }
                 hearts = hearts.filter(heart => heart.opacity > 0 && heart.y > -heart.size);
                 hearts.forEach(heart => {
                     heart.update();
                     heart.draw();
                 });
-            } else if (currentFilter === 'filter3') {
+            } else if (currentFilter === 'filter4') {
                 ctx.filter = 'grayscale(100%)';
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                 ctx.filter = 'none';
