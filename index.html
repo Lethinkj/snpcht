@@ -369,6 +369,10 @@
         const maxRecordingTime = 60; // 1 minute
         let holdTimer;
 
+        // Track speed types
+        let hasFastHeart = false;
+        let hasSlowHeart = false;
+
         // Filter descriptions
         const filterDescriptions = {
             filter1: 'Color Heart',
@@ -423,10 +427,17 @@
 
         // Heart class
         class Heart {
-            constructor(filter) {
+            constructor(filter, speedType) {
                 this.x = Math.random() * canvas.width;
                 this.y = canvas.height;
-                this.speed = Math.random() * 1.5 + 0.5;
+                // Set speed based on speedType
+                if (speedType === 'fast') {
+                    this.speed = Math.random() * 2.5 + 1.5; // Fast: 1.5 to 4.0
+                } else if (speedType === 'slow') {
+                    this.speed = Math.random() * 0.5 + 0.2; // Slow: 0.2 to 0.7
+                } else {
+                    this.speed = Math.random() * 1.5 + 0.5; // Normal: 0.5 to 2.0
+                }
                 this.baseSize = Math.random() * 20 + 40;
                 this.size = this.baseSize;
                 this.angle = Math.random() * Math.PI * 2;
@@ -438,6 +449,7 @@
                 this.image = heartImages[filter]?.loaded ? heartImages[filter].img : null;
                 this.fallbackColor = heartImages[filter]?.fallbackColor || 'red';
                 this.opacity = 1;
+                this.speedType = speedType; // Store speed type for tracking
             }
             update() {
                 this.y -= this.speed;
@@ -533,6 +545,8 @@
                 filterIndex = filters.indexOf(filter);
             }
             hearts = [];
+            hasFastHeart = false;
+            hasSlowHeart = false;
             document.querySelectorAll('#filter-controls button').forEach(btn => {
                 btn.classList.remove('active');
                 btn.setAttribute('aria-label', `Apply ${filterDescriptions[btn.id.replace('-btn', '')]} Filter`);
@@ -569,15 +583,26 @@
                     ctx.filter = 'none';
                 }
                 if (['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
-                    if (Math.random() < 0.1 && hearts.length < 5) {
-                        hearts.push(new Heart(currentFilter));
-                        console.log('Spawned heart, total:', hearts.length);
+                    if (Math.random() < 0.1 && hearts.length < 6) {
+                        let speedType = 'normal';
+                        if (!hasFastHeart) {
+                            speedType = 'fast';
+                            hasFastHeart = true;
+                        } else if (!hasSlowHeart) {
+                            speedType = 'slow';
+                            hasSlowHeart = true;
+                        }
+                        hearts.push(new Heart(currentFilter, speedType));
+                        console.log(`Spawned heart (${speedType}), total: ${hearts.length}`);
                     }
                     hearts = hearts.filter(heart => heart.y > -heart.size && heart.opacity > 0);
                     hearts.forEach(heart => {
                         heart.update();
                         heart.draw();
                     });
+                    // Reset fast/slow flags if hearts are removed
+                    hasFastHeart = hearts.some(heart => heart.speedType === 'fast');
+                    hasSlowHeart = hearts.some(heart => heart.speedType === 'slow');
                 }
             }
             requestAnimationFrame(render);
