@@ -87,8 +87,19 @@
         <button id="capture" onclick="capturePhoto()">📸</button>
     </div>
 
-    <script src="./js/face-api.min.js"></script>
+    <script src="./js/face-api.min.js" defer></script>
     <script>
+        // Debug: Check if faceApi is defined
+        window.addEventListener('load', () => {
+            if (typeof faceApi === 'undefined') {
+                console.error('faceApi is not defined. Check if ./js/face-api.min.js loaded correctly.');
+                document.getElementById('loading').innerText = 'Error: face-api.js failed to load. Check console.';
+            } else {
+                console.log('faceApi is defined. Proceeding to load models.');
+                loadModels();
+            }
+        });
+
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
@@ -106,11 +117,13 @@
                     console.error('Failed to load faceLandmark68Net:', err);
                     throw err;
                 });
+                console.log('Models loaded successfully.');
                 document.getElementById('loading').style.display = 'none';
                 startVideo();
             } catch (err) {
                 console.error('Model loading failed:', err);
-                document.getElementById('loading').innerText = 'Error loading models. Check console for details.';
+                document.getElementById('loading').innerText = 'Error loading models. Check console.';
+                alert('Failed to load models. Please check the console for details.');
             }
         }
 
@@ -122,6 +135,7 @@
                     video.onloadedmetadata = () => {
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
+                        console.log('Camera started.');
                         render();
                     };
                 })
@@ -228,9 +242,6 @@
             link.href = canvas.toDataURL('image/png');
             link.click();
         }
-
-        // Initialize
-        loadModels();
     </script>
 </body>
 </html>
