@@ -95,14 +95,14 @@
         let currentFilter = 'none';
         let hearts = [];
 
-        // Load face-api.js models from local models/ folder
+        // Load face-api.js models from /snpcht/models/
         async function loadModels() {
             try {
-                await faceApi.nets.tinyFaceDetector.loadFromUri('./models/').catch(err => {
+                await faceApi.nets.tinyFaceDetector.loadFromUri('/snpcht/models/').catch(err => {
                     console.error('Failed to load tinyFaceDetector:', err);
                     throw err;
                 });
-                await faceApi.nets.faceLandmark68Net.loadFromUri('./models/').catch(err => {
+                await faceApi.nets.faceLandmark68Net.loadFromUri('/snpcht/models/').catch(err => {
                     console.error('Failed to load faceLandmark68Net:', err);
                     throw err;
                 });
@@ -137,15 +137,15 @@
             hearts = []; // Reset hearts for Flying Hearts filter
         }
 
-        // Load filter images from assets/ folder
+        // Load filter images from /snpcht/assets/
         const sunglassesImg = new Image();
-        sunglassesImg.src = './assets/sunglasses.png';
+        sunglassesImg.src = '/snpcht/assets/sunglasses.png';
         const dogEarsImg = new Image();
-        dogEarsImg.src = './assets/dog-ears.png';
+        dogEarsImg.src = '/snpcht/assets/dog-ears.png';
         const flowerCrownImg = new Image();
-        flowerCrownImg.src = './assets/flower-crown.png';
+        flowerCrownImg.src = '/snpcht/assets/flower-crown.png';
         const heartImg = new Image();
-        heartImg.src = './assets/heart.png';
+        heartImg.src = '/snpcht/assets/heart.png';
 
         // Heart object for Flying Hearts filter
         class Heart {
