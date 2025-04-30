@@ -87,7 +87,7 @@
         <button id="capture" onclick="capturePhoto()">📸</button>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="./js/face-api.min.js"></script>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
@@ -95,14 +95,14 @@
         let currentFilter = 'none';
         let hearts = [];
 
-        // Load face-api.js models from /snpcht/models/
+        // Load face-api.js models from ./models/
         async function loadModels() {
             try {
-                await faceApi.nets.tinyFaceDetector.loadFromUri('/snpcht/models/').catch(err => {
+                await faceApi.nets.tinyFaceDetector.loadFromUri('./models/').catch(err => {
                     console.error('Failed to load tinyFaceDetector:', err);
                     throw err;
                 });
-                await faceApi.nets.faceLandmark68Net.loadFromUri('/snpcht/models/').catch(err => {
+                await faceApi.nets.faceLandmark68Net.loadFromUri('./models/').catch(err => {
                     console.error('Failed to load faceLandmark68Net:', err);
                     throw err;
                 });
@@ -137,15 +137,15 @@
             hearts = []; // Reset hearts for Flying Hearts filter
         }
 
-        // Load filter images from /snpcht/assets/
+        // Load filter images from ./assets/
         const sunglassesImg = new Image();
-        sunglassesImg.src = '/snpcht/assets/sunglasses.png';
+        sunglassesImg.src = './assets/sunglasses.png';
         const dogEarsImg = new Image();
-        dogEarsImg.src = '/snpcht/assets/dog-ears.png';
+        dogEarsImg.src = './assets/dog-ears.png';
         const flowerCrownImg = new Image();
-        flowerCrownImg.src = '/snpcht/assets/flower-crown.png';
+        flowerCrownImg.src = './assets/flower-crown.png';
         const heartImg = new Image();
-        heartImg.src = '/snpcht/assets/heart.png';
+        heartImg.src = './assets/heart.png';
 
         // Heart object for Flying Hearts filter
         class Heart {
