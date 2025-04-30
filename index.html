@@ -43,8 +43,8 @@
             align-items: center;
             width: 100%;
             max-width: 640px;
-            z-index: 10; /* Ensure buttons are above video/canvas */
-            background: rgba(0, 0, 0, 0.5); /* Add background for visibility */
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.5);
             padding: 10px;
             box-sizing: border-box;
         }
@@ -60,6 +60,9 @@
         }
         button:hover {
             background: rgba(255, 255, 255, 0.4);
+        }
+        button.active {
+            background: rgba(255, 255, 255, 0.6);
         }
         #capture {
             background: #fff;
@@ -77,6 +80,13 @@
             font-size: 18px;
             z-index: 5;
         }
+        @supports not (aspect-ratio: 9/16) {
+            #video-container {
+                width: 100%;
+                max-width: 640px;
+                height: calc(100vw * 16 / 9);
+            }
+        }
     </style>
 </head>
 <body>
@@ -86,10 +96,10 @@
         <div id="loading">Loading...</div>
     </div>
     <div id="controls">
-        <button onclick="setFilter('none')">None</button>
-        <button onclick="setFilter('hearts')">Random Hearts</button>
-        <button onclick="setFilter('grayscale')">Grayscale</button>
-        <button id="capture" onclick="capturePhoto()">📸</button>
+        <button onclick="setFilter('none')" aria-label="Apply no filter" class="active">None</button>
+        <button onclick="setFilter('hearts')" aria-label="Apply random hearts filter">Random Hearts</button>
+        <button onclick="setFilter('grayscale')" aria-label="Apply grayscale filter">Grayscale</button>
+        <button id="capture" onclick="capturePhoto()" aria-label="Capture photo">📸</button>
     </div>
 
     <script>
@@ -122,8 +132,8 @@
                 })
                 .catch(err => {
                     console.error('Error accessing camera:', err);
-                    document.getElementById('loading').innerText = 'Error: Could not access camera.';
-                    alert('Could not access camera. Please ensure camera permissions are granted.');
+                    const loading = document.getElementById('loading');
+                    loading.innerHTML = 'Error: Could not access camera. <button onclick="startVideo()">Retry</button>';
                 });
         }
 
@@ -131,6 +141,8 @@
         function setFilter(filter) {
             currentFilter = filter;
             hearts = [];
+            document.querySelectorAll('#controls button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
             console.log('Filter set to:', filter);
         }
 
@@ -140,7 +152,10 @@
         heartImg.onload = () => console.log('heart.png loaded successfully.');
         heartImg.onerror = () => {
             console.error('Failed to load heart.png');
-            document.getElementById('loading').innerText = 'Error: Could not load heart image. Hearts filter unavailable.';
+            const loading = document.getElementById('loading');
+            loading.innerText = 'Error: Could not load heart image.';
+            document.querySelector('button[onclick="setFilter(\'hearts\')]').disabled = true;
+            setTimeout(() => { loading.style.display = 'none'; }, 3000);
         };
 
         // Heart object
@@ -167,7 +182,7 @@
         function render() {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            if (currentFilter === 'hearts' && heartImg.complete && !heartImg.naturalWidth === 0) {
+            if (currentFilter === 'hearts' && heartImg.complete && heartImg.naturalWidth !== 0 && hearts.length < 20) {
                 if (Math.random() < 0.1) {
                     hearts.push(new Heart());
                 }
