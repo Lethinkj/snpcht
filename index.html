@@ -2,9 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta
-
- name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snapchat-Inspired Camera</title>
     <style>
         * {
@@ -12,7 +10,7 @@
         }
         body {
             margin: 0;
-            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -178,80 +176,59 @@
     </div>
 
     <script>
+        // DOM elements
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const controls = document.getElementById('controls');
+        const loading = document.getElementById('loading');
+        const flash = document.getElementById('flash');
+
+        // Filter state
         let currentFilter = 'filter1';
         let hearts = [];
         const filters = ['filter1', 'filter2', 'filter3'];
         let filterIndex = 0;
 
-        // Debug: Confirm controls are rendered
-        const controls = document.getElementById('controls');
-        if (controls) {
-            console.log('Controls div is rendered with', controls.children.length, 'buttons.');
-        } else {
-            console.error('Controls div not found.');
-        }
-
-        // Start video stream
-        function startVideo() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => {
-                    video.srcObject = stream;
-                    video.onloadedmetadata = () => {
-                        canvas.width = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        console.log('Camera started.');
-                        document.getElementById('loading').style.display = 'none';
-                        render();
-                    };
-                })
-                .catch(err => {
-                    console.error('Error accessing camera:', err);
-                    const loading = document.getElementById('loading');
-                    loading.innerHTML = 'Error: Could not access camera. <button onclick="startVideo()">Retry</button>';
-                });
-        }
-
-        // Set filter
-        function setFilter(filter) {
-            currentFilter = filter;
-            filterIndex = filters.indexOf(filter);
-            hearts = [];
-            document.querySelectorAll('#controls button:not(#capture)').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
-            canvas.style.opacity = '0.7';
-            setTimeout(() => { canvas.style.opacity = '1'; }, 300);
-            console.log(`Filter set to: ${filter}`);
-        }
-
-        // Load heart images
+        // Heart images
         const heartImages = [
             { src: './assets/heart.png', img: new Image(), loaded: false },
             { src: './assets/color_heart.png', img: new Image(), loaded: false },
             { src: './assets/heart-eyes.png', img: new Image(), loaded: false }
         ];
-        let allHeartsLoaded = false;
-        heartImages.forEach((heart, index) => {
+        let loadedImages = [];
+
+        // Load heart images
+        heartImages.forEach(heart => {
             heart.img.src = heart.src;
             heart.img.onload = () => {
                 heart.loaded = true;
-                console.log(`${heart.src} loaded successfully.`);
-                if (heartImages.every(h => h.loaded)) {
-                    allHeartsLoaded = true;
-                }
+                loadedImages.push(heart.img);
+                console.log(`Loaded: ${heart.src}, Total loaded: ${loadedImages.length}`);
             };
             heart.img.onerror = () => {
-                console.error(`Failed to load ${heart.src}`);
-                const loading = document.getElementById('loading');
-                loading.innerText = `Error: Could not load ${heart.src}.`;
-                document.querySelector('button[onclick="setFilter(\'filter2\')]').disabled = true;
+                console.error(`Failed to load: ${heart.src}`);
+                loading.innerText = `Error: Could not load ${heart.src.split('/').pop()}.`;
                 setTimeout(() => { loading.style.display = 'none'; }, 3000);
             };
         });
 
-        // Heart object
+        // Fallback heart shape
+        function drawFallbackHeart(x, y, size) {
+            ctx.save();
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.moveTo(x, y + size / 4);
+            ctx.quadraticCurveTo(x - size / 2, y - size / 4, x, y - size / 2);
+            ctx.quadraticCurveTo(x + size / 2, y - size / 4, x, y + size / 4);
+            ctx.quadraticCurveTo(x - size / 4, y + size / 2, x - size / 2, y + size / 4);
+            ctx.quadraticCurveTo(x, y + size / 2, x + size / 2, y + size / 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Heart class
         class Heart {
             constructor() {
                 this.x = Math.random() * canvas.width;
@@ -264,11 +241,10 @@
                 this.rotation = Math.random() * Math.PI * 2;
                 this.rotationSpeed = Math.random() * 0.05 - 0.025;
                 this.direction = Math.random() * 0.2 - 0.1;
-                // Randomly select a loaded heart image
-                const availableImages = heartImages.filter(h => h.loaded);
-                this.image = availableImages.length > 0
-                    ? availableImages[Math.floor(Math.random() * availableImages.length)].img
-                    : heartImages[0].img; // Fallback to first image if none loaded
+                this.image = loadedImages.length > 0
+                    ? loadedImages[Math.floor(Math.random() * loadedImages.length)]
+                    : null;
+                console.log(`Heart created with image: ${this.image ? this.image.src : 'fallback'}`);
             }
             update() {
                 this.y -= this.speed * Math.cos(this.direction);
@@ -282,16 +258,51 @@
                 ctx.globalAlpha = this.opacity;
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.rotation);
-                ctx.drawImage(this.image, -this.size / 2, -this.size / 2, this.size, this.size);
+                if (this.image) {
+                    ctx.drawImage(this.image, -this.size / 2, -this.size / 2, this.size, this.size);
+                } else {
+                    drawFallbackHeart(0, 0, this.size);
+                }
                 ctx.restore();
             }
+        }
+
+        // Start video stream
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    video.srcObject = stream;
+                    video.onloadedmetadata = () => {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        console.log('Camera started');
+                        loading.style.display = 'none';
+                        render();
+                    };
+                })
+                .catch(err => {
+                    console.error('Camera error:', err);
+                    loading.innerHTML = 'Error: Could not access camera. <button onclick="startVideo()">Retry</button>';
+                });
+        }
+
+        // Set filter
+        function setFilter(filter) {
+            currentFilter = filter;
+            filterIndex = filters.indexOf(filter);
+            hearts = [];
+            document.querySelectorAll('#controls button:not(#capture)').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`button[onclick="setFilter('${filter}')"]`).classList.add('active');
+            canvas.style.opacity = '0.7';
+            setTimeout(() => { canvas.style.opacity = '1'; }, 300);
+            console.log(`Filter set: ${filter}`);
         }
 
         // Render loop
         function render() {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            if (currentFilter === 'filter2' && allHeartsLoaded) {
+            if (currentFilter === 'filter2') {
                 if (Math.random() < 0.05 && hearts.length < 15) {
                     hearts.push(new Heart());
                 }
@@ -301,13 +312,9 @@
                     heart.draw();
                 });
             } else if (currentFilter === 'filter3') {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                for (let i = 0; i < data.length; i += 4) {
-                    const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                    data[i] = data[i + 1] = data[i + 2] = avg;
-                }
-                ctx.putImageData(imageData, 0, 0);
+                ctx.filter = 'grayscale(100%)';
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                ctx.filter = 'none';
             }
 
             requestAnimationFrame(render);
@@ -315,17 +322,16 @@
 
         // Capture photo
         function capturePhoto() {
-            const flash = document.getElementById('flash');
             flash.classList.add('flash-effect');
             setTimeout(() => { flash.classList.remove('flash-effect'); }, 200);
             const link = document.createElement('a');
             link.download = 'snapchat-photo.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            console.log('Photo captured.');
+            console.log('Photo captured');
         }
 
-        // Swipe gestures for filter switching
+        // Swipe gestures
         let touchStartX = 0;
         video.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
@@ -343,7 +349,12 @@
         });
 
         // Initialize
-        startVideo();
+        if (controls) {
+            console.log('Controls rendered with', controls.children.length, 'buttons');
+            startVideo();
+        } else {
+            console.error('Controls not found');
+        }
     </script>
 </body>
 </html>
