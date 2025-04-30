@@ -210,7 +210,7 @@
         </div>
     </div>
     <div id="controls">
-        <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)">
+        <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
@@ -232,7 +232,7 @@
             </svg>
         </button>
         <button id="filter5-btn" onclick="toggleFilter('filter5')" aria-label="Apply Filter 5 (Grayscale + Heart)">
-            <svg width="24" height="パラメータ24" viewBox="0 0 24 24" fill="#fff">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
             </svg>
         </button>
@@ -273,10 +273,10 @@
         const recordingTimer = document.getElementById('recording-timer');
 
         // Filter state
-        let currentFilter = null; // null means no filter (raw video)
+        let currentFilter = 'filter1'; // Start with Filter 1 active
         let hearts = [];
         const filters = ['filter1', 'filter2', 'filter3', 'filter4', 'filter5', 'filter6', 'filter7'];
-        let filterIndex = -1; // -1 for no filter
+        let filterIndex = 0; // Start at Filter 1
 
         // Recording state
         let mediaRecorder;
@@ -471,19 +471,27 @@
         function startRecording() {
             recordedChunks = [];
             const stream = canvas.captureStream(30);
-            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
+            const fileExtension = mimeType === 'video/mp4' ? 'mp4' : 'webm';
+            console.log(`Recording format: ${mimeType}`);
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
             mediaRecorder.ondataavailable = e => {
                 if (e.data.size > 0) recordedChunks.push(e.data);
             };
             mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const blob = new Blob(recordedChunks, { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                link.download = 'snapchat-video.webm';
+                link.download = `snapchat-video.${fileExtension}`;
                 link.href = url;
                 link.click();
                 URL.revokeObjectURL(url);
-                console.log('Video saved');
+                console.log(`Video saved as ${fileExtension}`);
+            };
+            mediaRecorder.onerror = e => {
+                console.error('Recording error:', e);
+                loading.innerText = 'Error: Could not record video.';
+                setTimeout(() => { loading.style.display = 'none'; }, 3000);
             };
             mediaRecorder.start();
             recordButton.classList.add('recording');
