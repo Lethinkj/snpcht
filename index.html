@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DUMB-CAM</title>
+    <title>SnapCam</title>
     <style>
         * {
             box-sizing: border-box;
@@ -38,6 +38,8 @@
             top: 0;
             left: 0;
             object-fit: cover;
+        }
+        #video {
             z-index: 0;
         }
         #canvas {
@@ -55,24 +57,21 @@
             align-items: center;
             width: 90%;
             max-width: 900px;
-            z-index: 20; /* Increased z-index */
+            z-index: 20;
             gap: 12px;
         }
         #filter-controls {
             display: flex;
-            justify-content: center; /* Center buttons */
+            justify-content: center;
             flex-wrap: nowrap;
             width: 100%;
             padding: 8px;
-            background: rgba(0, 0, 0, 0.8); /* Fallback for backdrop-filter */
+            background: rgba(0, 0, 0, 0.8);
             border-radius: 32px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            opacity: 1; /* Always visible */
-            transition: opacity 0.3s ease;
+            opacity: 1;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            /* Temporary debug outline */
-            border: 1px solid red;
         }
         #filter-controls::-webkit-scrollbar {
             display: none;
@@ -176,6 +175,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #fff;
         }
         .spinner {
             width: 20px;
@@ -226,8 +226,8 @@
         }
         @media (max-width: 600px) {
             button {
-                width: 48px;
-                height: 48px;
+                width: 40px;
+                height: 40px;
             }
             #action-button {
                 width: 72px;
@@ -293,38 +293,38 @@
     </div>
     <div id="controls">
         <div id="filter-controls">
-            <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
+            <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Color Heart Filter" class="active">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </button>
-            <button id="filter2-btn" onclick="toggleFilter('filter2')" aria-label="Apply Filter 2 (Heart)">
+            <button id="filter2-btn" onclick="toggleFilter('filter2')" aria-label="Apply Heart Filter">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </button>
-            <button id="filter3-btn" onclick="toggleFilter('filter3')" aria-label="Apply Filter 3 (Heart Eyes)">
+            <button id="filter3-btn" onclick="toggleFilter('filter3')" aria-label="Apply Heart Eyes Filter">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </button>
-            <button id="filter4-btn" onclick="toggleFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fffRunner-upstroke-width="2">
+            <button id="filter4-btn" onclick="toggleFilter('filter4')" aria-label="Apply Grayscale Filter">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
                     <rect x="2" y="2" width="20" height="20" rx="2"/>
                     <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
                 </svg>
             </button>
-            <button id="filter5-btn" onclick="toggleFilter('filter5')" aria-label="Apply Filter 5 (Grayscale + Heart)">
+            <button id="filter5-btn" onclick="toggleFilter('filter5')" aria-label="Apply Grayscale + Heart Filter">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </button>
-            <button id="filter6-btn" onclick="toggleFilter('filter6')" aria-label="Apply Filter 6 (Grayscale + Color Heart)">
+            <button id="filter6-btn" onclick="toggleFilter('filter6')" aria-label="Apply Grayscale + Color Heart Filter">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </button>
-            <button id="filter7-btn" onclick="toggleFilter('filter7')" aria-label="Apply Filter 7 (Grayscale + Heart Eyes)">
+            <button id="filter7-btn" onclick="toggleFilter('filter7')" aria-label="Apply Grayscale + Heart Eyes Filter">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
@@ -370,7 +370,7 @@
         let holdTimer;
 
         // Filter descriptions
-        const filterDescriptions(based on your input) filterDescriptions = {
+        const filterDescriptions = {
             filter1: 'Color Heart',
             filter2: 'Heart',
             filter3: 'Heart Eyes',
@@ -381,14 +381,14 @@
             null: 'No Filter'
         };
 
-        // Heart images (use fallback if images are unavailable)
+        // Heart images (with fallback colors)
         const heartImages = {
-            filter1: { src: './assets/color_heart.png', img: new Image(), loaded: false },
-            filter2: { src: './assets/heart.png', img: new Image(), loaded: false },
-            filter3: { src: './assets/heart-eyes.png', img: new Image(), loaded: false },
-            filter5: { src: './assets/heart.png', img: new Image(), loaded: false },
-            filter6: { src: './assets/color_heart.png', img: new Image(), loaded: false },
-            filter7: { src: './assets/heart-eyes.png', img: new Image(), loaded: false }
+            filter1: { src: './assets/color_heart.png', img: new Image(), loaded: false, fallbackColor: '#ff69b4' },
+            filter2: { src: './assets/heart.png', img: new Image(), loaded: false, fallbackColor: 'red' },
+            filter3: { src: './assets/heart-eyes.png', img: new Image(), loaded: false, fallbackColor: 'yellow' },
+            filter5: { src: './assets/heart.png', img: new Image(), loaded: false, fallbackColor: 'red' },
+            filter6: { src: './assets/color_heart.png', img: new Image(), loaded: false, fallbackColor: '#ff69b4' },
+            filter7: { src: './assets/heart-eyes.png', img: new Image(), loaded: false, fallbackColor: 'yellow' }
         };
 
         // Load heart images
@@ -396,16 +396,18 @@
             heart.img.src = heart.src;
             heart.img.onload = () => {
                 heart.loaded = true;
+                console.log(`Loaded: ${heart.src}`);
             };
             heart.img.onerror = () => {
-                heart.loaded = false; // Use fallback if image fails to load
+                heart.loaded = false;
+                console.warn(`Failed to load: ${heart.src}, using fallback`);
             };
         });
 
-        // Fallback heart
-        function drawFallbackHeart(x, y, size) {
+        // Fallback heart drawing
+        function drawFallbackHeart(x, y, size, color) {
             ctx.save();
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = color;
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
             ctx.shadowBlur = 5;
             ctx.beginPath();
@@ -434,6 +436,8 @@
                 this.scaleFactor = 1;
                 this.scaleDirection = 0.01;
                 this.image = heartImages[filter]?.loaded ? heartImages[filter].img : null;
+                this.fallbackColor = heartImages[filter]?.fallbackColor || 'red';
+                this.opacity = 1;
             }
             update() {
                 this.y -= this.speed;
@@ -446,8 +450,6 @@
                 if (this.y < canvas.height / 2) {
                     this.opacity = 1 - (canvas.height / 2 - this.y) / (canvas.height / 2);
                     this.opacity = Math.max(0, Math.min(1, this.opacity));
-                } else {
-                    this.opacity = 1;
                 }
             }
             draw() {
@@ -460,49 +462,65 @@
                 if (this.image) {
                     ctx.drawImage(this.image, -this.size / 2, -this.size / 2, this.size, this.size);
                 } else {
-                    drawFallbackHeart(0, 0, this.size);
+                    drawFallbackHeart(0, 0, this.size, this.fallbackColor);
                 }
                 ctx.restore();
             }
         }
 
+        // Check camera permission
+        async function checkCameraPermission() {
+            try {
+                const permissionStatus = await navigator.permissions.query({ name: 'camera' });
+                if (permissionStatus.state === 'denied') {
+                    loading.innerHTML = 'Camera permission denied. Please allow camera access in browser settings. <button onclick="startVideo()">Retry</button>';
+                    return false;
+                }
+                return true;
+            } catch (err) {
+                console.warn('Permission check error:', err);
+                return true; // Fallback for unsupported browsers
+            }
+        }
+
         // Start video stream
-        function startVideo() {
+        async function startVideo() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                loading.innerHTML = 'Error: Your browser does not support camera access.';
+                return;
+            }
+            if (!(await checkCameraPermission())) return;
+
             const constraints = [
                 { video: { facingMode: 'user' } },
                 { video: true }
             ];
             let currentConstraintIndex = 0;
 
-            function tryNextConstraint() {
+            async function tryNextConstraint() {
                 if (currentConstraintIndex >= constraints.length) {
-                    loading.innerHTML = 'Error: No camera available. <button onclick="startVideo()">Retry</button>';
+                    loading.innerHTML = 'Error: No camera available. Please connect a camera and retry. <button onclick="startVideo()">Retry</button>';
                     return;
                 }
-                navigator.mediaDevices.getUserMedia(constraints[currentConstraintIndex])
-                    .then(stream => {
-                        video.srcObject = stream;
-                        video.onloadedmetadata = () => {
-                            canvas.width = Math.min(video.videoWidth, 1280);
-                            canvas.height = Math.min(video.videoHeight, 720);
-                            ctx.imageSmoothingEnabled = true;
-                            loading.style.display = 'none';
-                            render();
-                        };
-                    })
-                    .catch(err => {
-                        console.error('Camera error:', err);
-                        currentConstraintIndex++;
-                        tryNextConstraint();
-                    });
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints[currentConstraintIndex]);
+                    video.srcObject = stream;
+                    video.play();
+                    video.onloadedmetadata = () => {
+                        canvas.width = Math.min(video.videoWidth, 1280);
+                        canvas.height = Math.min(video.videoHeight, 720);
+                        ctx.imageSmoothingEnabled = true;
+                        loading.style.display = 'none';
+                        console.log('Camera started:', canvas.width, 'x', canvas.height);
+                        render();
+                    };
+                } catch (err) {
+                    console.error(`Camera error with constraint ${currentConstraintIndex}:`, err);
+                    currentConstraintIndex++;
+                    tryNextConstraint();
+                }
             }
             tryNextConstraint();
-
-            setTimeout(() => {
-                if (loading.style.display !== 'none') {
-                    loading.innerHTML = 'Error: Camera failed to load. <button onclick="startVideo()">Retry</button>';
-                }
-            }, 5000);
         }
 
         // Toggle filter
@@ -517,19 +535,19 @@
             hearts = [];
             document.querySelectorAll('#filter-controls button').forEach(btn => {
                 btn.classList.remove('active');
-                btn.setAttribute('aria-label', `Apply ${filterDescriptions[btn.id.replace('-btn', '')]}`);
+                btn.setAttribute('aria-label', `Apply ${filterDescriptions[btn.id.replace('-btn', '')]} Filter`);
             });
             if (currentFilter) {
                 const btn = document.getElementById(`${currentFilter}-btn`);
                 btn.classList.add('active');
-                btn.setAttribute('aria-label', `Turn off ${filterDescriptions[currentFilter]}`);
+                btn.setAttribute('aria-label', `Turn off ${filterDescriptions[currentFilter]} Filter`);
             }
             canvas.style.opacity = '0.7';
             setTimeout(() => { canvas.style.opacity = '1'; }, 300);
             filterLabel.textContent = filterDescriptions[currentFilter];
             filterLabel.classList.add('show');
             setTimeout(() => { filterLabel.classList.remove('show'); }, 1000);
-            showControls();
+            console.log('Filter set:', currentFilter || 'none');
         }
 
         // Render loop
@@ -551,8 +569,9 @@
                     ctx.filter = 'none';
                 }
                 if (['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
-                    if (Math.random() < 0.08 && hearts.length < 8) {
+                    if (Math.random() < 0.1 && hearts.length < 5) {
                         hearts.push(new Heart(currentFilter));
+                        console.log('Spawned heart, total:', hearts.length);
                     }
                     hearts = hearts.filter(heart => heart.y > -heart.size && heart.opacity > 0);
                     hearts.forEach(heart => {
@@ -561,7 +580,6 @@
                     });
                 }
             }
-
             requestAnimationFrame(render);
         }
 
@@ -571,10 +589,10 @@
             setTimeout(() => { flash.classList.remove('flash-effect'); }, 250);
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             const link = document.createElement('a');
-            link.download = 'snapchat-photo.png';
+            link.download = 'snapcam-photo.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
-            showControls();
+            console.log('Photo captured');
         }
 
         // Video recording
@@ -591,13 +609,15 @@
                 const blob = new Blob(recordedChunks, { type: mimeType });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                link.download = `snapchat-video.${fileExtension}`;
+                link.download = `snapcam-video.${fileExtension}`;
                 link.href = url;
                 link.click();
                 URL.revokeObjectURL(url);
+                console.log('Video saved');
             };
             mediaRecorder.onerror = e => {
-                loading.innerText = 'Error: Could not record video.';
+                console.error('Recording error:', e);
+                loading.innerHTML = 'Error: Could not record video. <button onclick="startRecording()">Retry</button>';
                 setTimeout(() => { loading.style.display = 'none'; }, 3000);
             };
             mediaRecorder.start();
@@ -608,18 +628,22 @@
             recordingStartTime = Date.now();
             updateTimer();
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+            console.log('Recording started');
             setTimeout(() => {
-                if (mediaRecorder.state === 'recording') stopRecording();
+                if (mediaRecorder?.state === 'recording') stopRecording();
             }, maxRecordingTime * 1000);
         }
 
         function stopRecording() {
-            mediaRecorder.stop();
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
             actionButton.classList.remove('recording');
             actionButton.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6" fill="#000"/></svg>';
             actionButton.setAttribute('aria-label', 'Tap to capture photo, hold to record video');
             recordingIndicator.style.display = 'none';
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+            console.log('Recording stopped');
         }
 
         function updateTimer() {
@@ -638,24 +662,14 @@
             }
         }
 
-        // Control visibility
-        function showControls() {
-            filterControls.style.opacity = '1'; // Ensure visibility
-            filterControls.style.display = 'flex'; // Ensure display
-            console.log('Filter controls shown');
-        }
-
-        video.addEventListener('touchstart', showControls);
-        video.addEventListener('mousemove', showControls);
-
         // Action button interactions
-        actionButton.addEventListener('click', (e) => {
+        actionButton.addEventListener('click', () => {
             if (!actionButton.classList.contains('recording')) {
                 capturePhoto();
             }
         });
 
-        actionButton.addEventListener('touchstart', (e) => {
+        actionButton.addEventListener('touchstart', e => {
             e.preventDefault();
             holdTimer = setTimeout(() => {
                 if (!actionButton.classList.contains('recording')) {
@@ -666,12 +680,12 @@
             }, 300);
         });
 
-        actionButton.addEventListener('touchend', (e) => {
+        actionButton.addEventListener('touchend', e => {
             e.preventDefault();
             clearTimeout(holdTimer);
         });
 
-        // Swipe gestures
+        // Swipe gestures for filter cycling
         let touchStartX = 0;
         video.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
@@ -726,8 +740,8 @@
 
         // Initialize
         if (controls && filterControls) {
+            console.log('Initializing SnapCam');
             startVideo();
-            showControls();
         } else {
             loading.innerHTML = 'Error: UI elements not found. Please refresh the page.';
         }
