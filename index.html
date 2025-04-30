@@ -36,10 +36,17 @@
         #controls {
             position: fixed;
             bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             justify-content: center;
+            align-items: center;
             width: 100%;
             max-width: 640px;
+            z-index: 10; /* Ensure buttons are above video/canvas */
+            background: rgba(0, 0, 0, 0.5); /* Add background for visibility */
+            padding: 10px;
+            box-sizing: border-box;
         }
         button {
             background: rgba(255, 255, 255, 0.2);
@@ -68,6 +75,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 18px;
+            z-index: 5;
         }
     </style>
 </head>
@@ -90,6 +98,14 @@
         const ctx = canvas.getContext('2d');
         let currentFilter = 'none';
         let hearts = [];
+
+        // Debug: Confirm controls are rendered
+        const controls = document.getElementById('controls');
+        if (controls) {
+            console.log('Controls div is rendered with', controls.children.length, 'buttons.');
+        } else {
+            console.error('Controls div not found.');
+        }
 
         // Start video stream
         function startVideo() {
@@ -115,14 +131,16 @@
         function setFilter(filter) {
             currentFilter = filter;
             hearts = [];
+            console.log('Filter set to:', filter);
         }
 
         // Load heart image
         const heartImg = new Image();
-        heartImg.src = '/snpcht/assets/heart.png';
+        heartImg.src = './assets/heart.png';
+        heartImg.onload = () => console.log('heart.png loaded successfully.');
         heartImg.onerror = () => {
             console.error('Failed to load heart.png');
-            document.getElementById('loading').innerText = 'Error: Could not load heart image.';
+            document.getElementById('loading').innerText = 'Error: Could not load heart image. Hearts filter unavailable.';
         };
 
         // Heart object
@@ -149,7 +167,7 @@
         function render() {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            if (currentFilter === 'hearts') {
+            if (currentFilter === 'hearts' && heartImg.complete && !heartImg.naturalWidth === 0) {
                 if (Math.random() < 0.1) {
                     hearts.push(new Heart());
                 }
@@ -177,6 +195,7 @@
             link.download = 'snapchat-photo.png';
             link.href = canvas.toDataURL('image/png');
             link.click();
+            console.log('Photo captured.');
         }
 
         // Initialize
