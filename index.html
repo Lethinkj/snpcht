@@ -95,12 +95,23 @@
         let currentFilter = 'none';
         let hearts = [];
 
-        // Load face-api.js models
+        // Load face-api.js models from local models/ folder
         async function loadModels() {
-            await faceApi.nets.tinyFaceDetector.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
-            await faceApi.nets.faceLandmark68Net.loadFromUri('https://justadudewhohacks.github.io/face-api.js/models/');
-            document.getElementById('loading').style.display = 'none';
-            startVideo();
+            try {
+                await faceApi.nets.tinyFaceDetector.loadFromUri('./models/').catch(err => {
+                    console.error('Failed to load tinyFaceDetector:', err);
+                    throw err;
+                });
+                await faceApi.nets.faceLandmark68Net.loadFromUri('./models/').catch(err => {
+                    console.error('Failed to load faceLandmark68Net:', err);
+                    throw err;
+                });
+                document.getElementById('loading').style.display = 'none';
+                startVideo();
+            } catch (err) {
+                console.error('Model loading failed:', err);
+                document.getElementById('loading').innerText = 'Error loading models. Check console for details.';
+            }
         }
 
         // Start video stream
@@ -114,7 +125,10 @@
                         render();
                     };
                 })
-                .catch(err => console.error('Error accessing camera:', err));
+                .catch(err => {
+                    console.error('Error accessing camera:', err);
+                    alert('Could not access camera. Please ensure camera permissions are granted.');
+                });
         }
 
         // Set filter
@@ -123,15 +137,15 @@
             hearts = []; // Reset hearts for Flying Hearts filter
         }
 
-        // Load filter images (replace with your image URLs)
+        // Load filter images from assets/ folder
         const sunglassesImg = new Image();
-        sunglassesImg.src = 'https://example.com/sunglasses.png'; // Replace with actual URL
+        sunglassesImg.src = './assets/sunglasses.png';
         const dogEarsImg = new Image();
-        dogEarsImg.src = 'https://example.com/dog-ears.png'; // Replace with actual URL
+        dogEarsImg.src = './assets/dog-ears.png';
         const flowerCrownImg = new Image();
-        flowerCrownImg.src = 'https://example.com/flower-crown.png'; // Replace with actual URL
+        flowerCrownImg.src = './assets/flower-crown.png';
         const heartImg = new Image();
-        heartImg.src = 'https://example.com/heart.png'; // Replace with actual URL
+        heartImg.src = './assets/heart.png';
 
         // Heart object for Flying Hearts filter
         class Heart {
