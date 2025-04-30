@@ -95,10 +95,11 @@
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js';
             script.defer = true;
-            script.onload = () => console.log('Fallback CDN loaded.');
+            script.onload = () => console.log('Fallback CDN loaded successfully.');
             script.onerror = () => {
                 console.error('Fallback CDN also failed.');
                 document.getElementById('loading').innerText = 'Error: face-api.js failed to load from both sources.';
+                alert('face-api.js failed to load from both sources. Check console.');
             };
             document.head.appendChild(script);
         }
