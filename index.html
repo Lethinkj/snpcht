@@ -87,13 +87,28 @@
         <button id="capture" onclick="capturePhoto()">📸</button>
     </div>
 
-    <script src="./js/face-api.min.js" defer></script>
+    <script src="./js/face-api.min.js" defer onerror="loadFallbackScript()"></script>
     <script>
+        // Fallback CDN if local script fails
+        function loadFallbackScript() {
+            console.warn('Local face-api.min.js failed to load. Trying fallback CDN.');
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js';
+            script.defer = true;
+            script.onload = () => console.log('Fallback CDN loaded.');
+            script.onerror = () => {
+                console.error('Fallback CDN also failed.');
+                document.getElementById('loading').innerText = 'Error: face-api.js failed to load from both sources.';
+            };
+            document.head.appendChild(script);
+        }
+
         // Debug: Check if faceApi is defined
         window.addEventListener('load', () => {
             if (typeof faceApi === 'undefined') {
-                console.error('faceApi is not defined. Check if ./js/face-api.min.js loaded correctly.');
+                console.error('faceApi is not defined. Check if ./js/face-api.min.js or fallback loaded.');
                 document.getElementById('loading').innerText = 'Error: face-api.js failed to load. Check console.';
+                alert('face-api.js failed to load. Please check the console for details.');
             } else {
                 console.log('faceApi is defined. Proceeding to load models.');
                 loadModels();
