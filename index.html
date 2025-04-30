@@ -51,28 +51,44 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            justify-content: space-evenly;
+            flex-direction: column;
             align-items: center;
             width: 90%;
             max-width: 900px;
             z-index: 10;
+            gap: 12px;
+        }
+        #filter-controls {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            width: 100%;
+            padding: 8px;
             background: linear-gradient(180deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
             backdrop-filter: blur(12px);
-            padding: 12px 8px;
             border-radius: 32px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             opacity: 0.9;
             transition: opacity 0.3s ease;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
         }
-        #controls.active {
+        #filter-controls::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        #filter-controls.active {
             opacity: 1;
+        }
+        #action-button-container {
+            display: flex;
+            justify-content: center;
         }
         button {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: #fff;
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -81,8 +97,9 @@
             transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
             outline: none;
             padding: 8px;
-            margin: 0 4px;
+            margin: 0 6px;
             touch-action: manipulation;
+            flex: 0 0 auto;
         }
         button:hover, button:focus {
             background: rgba(255, 255, 255, 0.35);
@@ -96,28 +113,21 @@
             background: rgba(255, 255, 255, 0.5);
             border: 2px solid #fffc00;
         }
-        #capture {
+        #action-button {
             background: #fffc00;
             color: #000;
-            width: 64px;
-            height: 64px;
+            width: 80px;
+            height: 80px;
             box-shadow: 0 0 15px rgba(255, 252, 0, 0.7);
         }
-        #capture:active {
-            background: #e6e300;
-        }
-        #record {
+        #action-button.recording {
             background: #ff0000;
             color: #fff;
-            width: 64px;
-            height: 64px;
-            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
         }
-        #record.recording {
-            background: #fff;
-            color: #ff0000;
+        #action-button:active {
+            background: #e6e300;
         }
-        #record:active {
+        #action-button.recording:active {
             background: #cc0000;
         }
         #recording-indicator {
@@ -200,7 +210,7 @@
         }
         #filter-label {
             position: absolute;
-            bottom: calc(100px + env(safe-area-inset-bottom));
+            bottom: calc(120px + env(safe-area-inset-bottom));
             left: 50%;
             transform: translateX(-50%);
             background: rgba(0, 0, 0, 0.8);
@@ -217,31 +227,56 @@
             opacity: 1;
         }
         @media (max-width: 600px) {
-            button { width: 40px; height: 40px; }
-            #capture, #record { width: 56px; height: 56px; }
-            #controls { 
-                padding: 8px; 
-                max-width: 95%; 
-                gap: 6px; 
-                bottom: calc(15px + env(safe-area-inset-bottom)); 
+            button {
+                width: 48px;
+                height: 48px;
             }
-            #filter-label { 
-                font-size: 12px; 
-                padding: 6px 12px; 
-                bottom: calc(90px + env(safe-area-inset-bottom)); 
+            #action-button {
+                width: 72px;
+                height: 72px;
             }
-            #recording-indicator { 
-                font-size: 12px; 
-                padding: 6px 12px; 
-                top: calc(15px + env(safe-area-inset-top)); 
+            #controls {
+                gap: 10px;
+                bottom: calc(15px + env(safe-area-inset-bottom));
+            }
+            #filter-controls {
+                padding: 8px;
+                gap: 8px;
+            }
+            #filter-label {
+                font-size: 12px;
+                padding: 6px 12px;
+                bottom: calc(110px + env(safe-area-inset-bottom));
+            }
+            #recording-indicator {
+                font-size: 12px;
+                padding: 6px 12px;
+                top: calc(15px + env(safe-area-inset-top));
             }
         }
         @media (min-width: 601px) {
-            button { width: 52px; height: 52px; }
-            #capture, #record { width: 72px; height: 72px; }
-            #controls { max-width: 900px; padding: 12px; }
-            #filter-label { font-size: 16px; bottom: 140px; }
-            #recording-indicator { font-size: 16px; }
+            button {
+                width: 56px;
+                height: 56px;
+            }
+            #action-button {
+                width: 88px;
+                height: 88px;
+            }
+            #filter-controls {
+                padding: 12px;
+                gap: 10px;
+            }
+            #controls {
+                gap: 12px;
+            }
+            #filter-label {
+                font-size: 16px;
+                bottom: calc(130px + env(safe-area-inset-bottom));
+            }
+            #recording-indicator {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -259,65 +294,64 @@
         </div>
     </div>
     <div id="controls">
-        <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-        </button>
-        <button id="filter2-btn" onclick="toggleFilter('filter2')" aria-label="Apply Filter 2 (Heart)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-        </button>
-        <button id="filter3-btn" onclick="toggleFilter('filter3')" aria-label="Apply Filter 3 (Heart Eyes)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-        </button>
-        <button id="filter4-btn" onclick="toggleFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
-                <rect x="2" y="2" width="20" height="20" rx="2"/>
-                <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
-            </svg>
-        </button>
-        <button id="filter5-btn" onclick="toggleFilter('filter5')" aria-label="Apply Filter 5 (Grayscale + Heart)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-        </button>
-        <button id="filter6-btn" onclick="toggleFilter('filter6')" aria-label="Apply Filter 6 (Grayscale + Color Heart)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-        </button>
-        <button id="filter7-btn" onclick="toggleFilter('filter7')" aria-label="Apply Filter 7 (Grayscale + Heart Eyes)">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-            </svg>
-        </button>
-        <button id="capture" onclick="capturePhoto()" aria-label="Capture photo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="6" fill="#000"/>
-            </svg>
-        </button>
-        <button id="record" onclick="toggleRecording()" aria-label="Start recording">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
-                <circle cx="12" cy="12" r="8"/>
-            </svg>
-        </button>
+        <div id="filter-controls">
+            <button id="filter1-btn" onclick="toggleFilter('filter1')" aria-label="Apply Filter 1 (Color Heart)" class="active">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button id="filter2-btn" onclick="toggleFilter('filter2')" aria-label="Apply Filter 2 (Heart)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button id="filter3-btn" onclick="toggleFilter('filter3')" aria-label="Apply Filter 3 (Heart Eyes)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button id="filter4-btn" onclick="toggleFilter('filter4')" aria-label="Apply Filter 4 (Grayscale)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+                    <rect x="2" y="2" width="20" height="20" rx="2"/>
+                    <rect x="6" y="6" width="12" height="12" fill="#ccc"/>
+                </svg>
+            </button>
+            <button id="filter5-btn" onclick="toggleFilter('filter5')" aria-label="Apply Filter 5 (Grayscale + Heart)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button id="filter6-btn" onclick="toggleFilter('filter6')" aria-label="Apply Filter 6 (Grayscale + Color Heart)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+            <button id="filter7-btn" onclick="toggleFilter('filter7')" aria-label="Apply Filter 7 (Grayscale + Heart Eyes)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#fff">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </button>
+        </div>
+        <div id="action-button-container">
+            <button id="action-button" aria-label="Tap to capture photo, hold to record video">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <circle cx="12" cy="12" r="6" fill="#000"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <script>
         // DOM elements
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const controls = document.getElementById('controls');
+        const ctx = canvas.get        const controls = document.getElementById('controls');
+        const filterControls = document.getElementById('filter-controls');
         const loading = document.getElementById('loading');
         const flash = document.getElementById('flash');
         const filterLabel = document.getElementById('filter-label');
-        const recordButton = document.getElementById('record');
+        const actionButton = document.getElementById('action-button');
         const recordingIndicator = document.getElementById('recording-indicator');
         const recordingTimer = document.getElementById('recording-timer');
         const recordingProgress = document.getElementById('recording-progress');
@@ -334,6 +368,7 @@
         let recordedChunks = [];
         let recordingStartTime;
         const maxRecordingTime = 60; // 1 minute
+        let holdTimer;
 
         // Filter descriptions
         const filterDescriptions = {
@@ -393,8 +428,8 @@
             constructor(filter) {
                 this.x = Math.random() * canvas.width;
                 this.y = canvas.height;
-                this.speed = Math.random() * 1.5 + 0.5; // 0.5–2px/frame
-                this.baseSize = Math.random() * 20 + 40; // 40–60px
+                this.speed = Math.random() * 1.5 + 0.5;
+                this.baseSize = Math.random() * 20 + 40;
                 this.size = this.baseSize;
                 this.angle = Math.random() * Math.PI * 2;
                 this.driftSpeed = Math.random() * 0.2 - 0.1;
@@ -413,7 +448,6 @@
                 this.scaleFactor += this.scaleDirection;
                 if (this.scaleFactor > 1.05 || this.scaleFactor < 0.95) this.scaleDirection *= -1;
                 this.size = this.baseSize * this.scaleFactor;
-                // Transparency: Opaque until mid-screen, fade to transparent at top
                 if (this.y < canvas.height / 2) {
                     this.opacity = 1 - (canvas.height / 2 - this.y) / (canvas.height / 2);
                     this.opacity = Math.max(0, Math.min(1, this.opacity));
@@ -468,7 +502,7 @@
                 filterIndex = filters.indexOf(filter);
             }
             hearts = [];
-            document.querySelectorAll('#controls button:not(#capture):not(#record)').forEach(btn => {
+            document.querySelectorAll('#filter-controls button').forEach(btn => {
                 btn.classList.remove('active');
                 btn.setAttribute('aria-label', `Apply ${filterDescriptions[btn.id.replace('-btn', '')]}`);
             });
@@ -534,14 +568,6 @@
         }
 
         // Video recording
-        function toggleRecording() {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                startRecording();
-            } else {
-                stopRecording();
-            }
-        }
-
         function startRecording() {
             recordedChunks = [];
             const stream = canvas.captureStream(30);
@@ -568,8 +594,9 @@
                 setTimeout(() => { loading.style.display = 'none'; }, 3000);
             };
             mediaRecorder.start();
-            recordButton.classList.add('recording');
-            recordButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="#ff0000"><rect x="6" y="6" width="12" height="12"/></svg>';
+            actionButton.classList.add('recording');
+            actionButton.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="6" width="12" height="12"/></svg>';
+            actionButton.setAttribute('aria-label', 'Stop recording');
             recordingIndicator.style.display = 'flex';
             recordingStartTime = Date.now();
             updateTimer();
@@ -582,8 +609,9 @@
 
         function stopRecording() {
             mediaRecorder.stop();
-            recordButton.classList.remove('recording');
-            recordButton.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="12" r="8"/></svg>';
+            actionButton.classList.remove('recording');
+            actionButton.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6" fill="#000"/></svg>';
+            actionButton.setAttribute('aria-label', 'Tap to capture photo, hold to record video');
             recordingIndicator.style.display = 'none';
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             console.log('Recording stopped');
@@ -607,14 +635,37 @@
 
         // Control visibility
         function showControls() {
-            controls.classList.add('active');
-            clearTimeout(controls.hideTimeout);
+            filterControls.classList.add('active');
+            clearTimeout(filterControls.hideTimeout);
             if (!mediaRecorder || mediaRecorder.state !== 'recording') {
-                controls.hideTimeout = setTimeout(() => { controls.classList.remove('active'); }, 3000);
+                filterControls.hideTimeout = setTimeout(() => { filterControls.classList.remove('active'); }, 3000);
             }
         }
         video.addEventListener('touchstart', showControls);
         video.addEventListener('mousemove', showControls);
+
+        // Action button interactions
+        actionButton.addEventListener('click', (e) => {
+            if (!actionButton.classList.contains('recording')) {
+                capturePhoto();
+            }
+        });
+
+        actionButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            holdTimer = setTimeout(() => {
+                if (!actionButton.classList.contains('recording')) {
+                    startRecording();
+                } else {
+                    stopRecording();
+                }
+            }, 300);
+        });
+
+        actionButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            clearTimeout(holdTimer);
+        });
 
         // Swipe gestures
         let touchStartX = 0;
@@ -655,7 +706,11 @@
             } else if (e.key === ' ') {
                 capturePhoto();
             } else if (e.key.toLowerCase() === 'r') {
-                toggleRecording();
+                if (!actionButton.classList.contains('recording')) {
+                    startRecording();
+                } else {
+                    stopRecording();
+                }
             }
         });
 
@@ -667,7 +722,7 @@
 
         // Initialize
         if (controls) {
-            console.log('Controls rendered with', controls.children.length, 'buttons');
+            console.log('Controls rendered with', filterControls.children.length, 'filter buttons and 1 action button');
             startVideo();
             showControls();
         } else {
