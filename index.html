@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -70,6 +71,7 @@
             border-radius: 32px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
             opacity: 1;
+            overflow-x: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -228,6 +230,7 @@
             button {
                 width: 40px;
                 height: 40px;
+                margin: 0 4px;
             }
             #action-button {
                 width: 72px;
@@ -238,8 +241,8 @@
                 bottom: calc(15px + env(safe-area-inset-bottom));
             }
             #filter-controls {
-                padding: 8px;
-                gap: 8px;
+                padding: 6px;
+                gap: 6px;
             }
             #filter-label {
                 font-size: 12px;
@@ -256,6 +259,7 @@
             button {
                 width: 56px;
                 height: 56px;
+                margin: 0 8px;
             }
             #action-button {
                 width: 88px;
@@ -274,6 +278,11 @@
             }
             #recording-indicator {
                 font-size: 16px;
+            }
+        }
+        @media (orientation: landscape) {
+            #video-container {
+                aspect-ratio: 16/9;
             }
         }
     </style>
@@ -573,37 +582,37 @@
             }
             lastFrame = timestamp;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            if (currentFilter) {
-                const isGrayscale = ['filter4', 'filter5', 'filter6', 'filter7'].includes(currentFilter);
-                if (isGrayscale) {
-                    ctx.filter = 'grayscale(100%) contrast(1.2) brightness(1.1)';
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    ctx.filter = 'none';
-                }
-                if (['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
-                    if (Math.random() < 0.1 && hearts.length < 6) {
-                        let speedType = 'normal';
-                        if (!hasFastHeart) {
-                            speedType = 'fast';
-                            hasFastHeart = true;
-                        } else if (!hasSlowHeart) {
-                            speedType = 'slow';
-                            hasSlowHeart = true;
-                        }
-                        hearts.push(new Heart(currentFilter, speedType));
-                        console.log(`Spawned heart (${speedType}), total: ${hearts.length}`);
+            const isGrayscale = currentFilter && ['filter4', 'filter5', 'filter6', 'filter7'].includes(currentFilter);
+            if (isGrayscale) {
+                ctx.filter = 'grayscale(100%) contrast(1.2) brightness(1.1)';
+            }
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            if (isGrayscale) {
+                ctx.filter = 'none';
+            }
+
+            if (currentFilter && ['filter1', 'filter2', 'filter3', 'filter5', 'filter6', 'filter7'].includes(currentFilter)) {
+                if (Math.random() < 0.1 && hearts.length < 6) {
+                    let speedType = 'normal';
+                    if (!hasFastHeart) {
+                        speedType = 'fast';
+                        hasFastHeart = true;
+                    } else if (!hasSlowHeart) {
+                        speedType = 'slow';
+                        hasSlowHeart = true;
                     }
-                    hearts = hearts.filter(heart => heart.y > -heart.size && heart.opacity > 0);
-                    hearts.forEach(heart => {
-                        heart.update();
-                        heart.draw();
-                    });
-                    // Reset fast/slow flags if hearts are removed
-                    hasFastHeart = hearts.some(heart => heart.speedType === 'fast');
-                    hasSlowHeart = hearts.some(heart => heart.speedType === 'slow');
+                    hearts.push(new Heart(currentFilter, speedType));
+                    console.log(`Spawned heart (${speedType}), total: ${hearts.length}`);
                 }
+                hearts = hearts.filter(heart => heart.y > -heart.size && heart.opacity > 0);
+                hearts.forEach(heart => {
+                    heart.update();
+                    heart.draw();
+                });
+                // Reset fast/slow flags if hearts are removed
+                hasFastHeart = hearts.some(heart => heart.speedType === 'fast');
+                hasSlowHeart = hearts.some(heart => heart.speedType === 'slow');
             }
             requestAnimationFrame(render);
         }
@@ -712,11 +721,11 @@
 
         // Swipe gestures for filter cycling
         let touchStartX = 0;
-        video.addEventListener('touchstart', e => {
+        canvas.addEventListener('touchstart', e => {
             touchStartX = e.touches[0].clientX;
             e.preventDefault();
         });
-        video.addEventListener('touchend', e => {
+        canvas.addEventListener('touchend', e => {
             const touchEndX = e.changedTouches[0].clientX;
             const deltaX = touchEndX - touchStartX;
             if (deltaX > 50) {
@@ -773,3 +782,4 @@
     </script>
 </body>
 </html>
+```
