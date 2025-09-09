@@ -69,7 +69,6 @@
             background: rgba(0, 0, 0, 0.8);
             border-radius: 32px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            opacity: 1;
             overflow-x: auto;
             scrollbar-width: none;
             -ms-overflow-style: none;
@@ -282,6 +281,9 @@
         @media (orientation: landscape) {
             #video-container {
                 aspect-ratio: 16/9;
+                width: 100%;
+                height: auto;
+                max-height: 100vh;
             }
         }
     </style>
@@ -352,7 +354,7 @@
         // DOM elements
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         const controls = document.getElementById('controls');
         const filterControls = document.getElementById('filter-controls');
         const loading = document.getElementById('loading');
@@ -376,6 +378,7 @@
         let recordingStartTime;
         const maxRecordingTime = 60; // 1 minute
         let holdTimer;
+        let isHolding = false;
 
         // Track speed types
         let hasFastHeart = false;
@@ -438,13 +441,12 @@
             constructor(filter, speedType) {
                 this.x = Math.random() * canvas.width;
                 this.y = canvas.height;
-                // Set speed based on speedType
                 if (speedType === 'fast') {
-                    this.speed = Math.random() * 2.5 + 1.5; // Fast: 1.5 to 4.0
+                    this.speed = Math.random() * 2.5 + 1.5;
                 } else if (speedType === 'slow') {
-                    this.speed = Math.random() * 0.5 + 0.2; // Slow: 0.2 to 0.7
+                    this.speed = Math.random() * 0.5 + 0.2;
                 } else {
-                    this.speed = Math.random() * 1.5 + 0.5; // Normal: 0.5 to 2.0
+                    this.speed = Math.random() * 1.5 + 0.5;
                 }
                 this.baseSize = Math.random() * 20 + 40;
                 this.size = this.baseSize;
@@ -457,7 +459,7 @@
                 this.image = heartImages[filter]?.loaded ? heartImages[filter].img : null;
                 this.fallbackColor = heartImages[filter]?.fallbackColor || 'red';
                 this.opacity = 1;
-                this.speedType = speedType; // Store speed type for tracking
+                this.speedType = speedType;
             }
             update() {
                 this.y -= this.speed;
@@ -499,7 +501,7 @@
                 return true;
             } catch (err) {
                 console.warn('Permission check error:', err);
-                return true; // Fallback for unsupported browsers
+                return true;
             }
         }
 
@@ -512,7 +514,7 @@
             if (!(await checkCameraPermission())) return;
 
             const constraints = [
-                { video: { facingMode: 'user' } },
+                { video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } },
                 { video: true }
             ];
             let currentConstraintIndex = 0;
@@ -575,7 +577,7 @@
         // Render loop
         let lastFrame = 0;
         function render(timestamp) {
-            if (timestamp - lastFrame < 16) {
+            if (timestamp - lastFrame < 16.67) { // 60 FPS
                 requestAnimationFrame(render);
                 return;
             }
@@ -609,7 +611,6 @@
                     heart.update();
                     heart.draw();
                 });
-                // Reset fast/slow flags if hearts are removed
                 hasFastHeart = hearts.some(heart => heart.speedType === 'fast');
                 hasSlowHeart = hearts.some(heart => heart.speedType === 'slow');
             }
@@ -622,7 +623,7 @@
             setTimeout(() => { flash.classList.remove('flash-effect'); }, 250);
             if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
             const link = document.createElement('a');
-            link.download = 'snapcam-photo.png';
+            link.download = `snapcam-photo-${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
             console.log('Photo captured');
@@ -632,39 +633,50 @@
         function startRecording() {
             recordedChunks = [];
             const stream = canvas.captureStream(30);
-            const mimeType = MediaRecorder.isTypeSupported('video/mp4') ? 'video/mp4' : 'video/webm';
-            const fileExtension = mimeType === 'video/mp4' ? 'mp4' : 'webm';
-            mediaRecorder = new MediaRecorder(stream, { mimeType });
-            mediaRecorder.ondataavailable = e => {
-                if (e.data.size > 0) recordedChunks.push(e.data);
-            };
-            mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: mimeType });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.download = `snapcam-video.${fileExtension}`;
-                link.href = url;
-                link.click();
-                URL.revokeObjectURL(url);
-                console.log('Video saved');
-            };
-            mediaRecorder.onerror = e => {
-                console.error('Recording error:', e);
-                loading.innerHTML = 'Error: Could not record video. <button onclick="startRecording()">Retry</button>';
+            const mimeTypes = [
+                'video/mp4; codecs=avc1.42E01E,mp4a.40.2',
+                'video/webm; codecs=vp9,opus',
+                'video/webm; codecs=vp8,opus'
+            ];
+            const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || 'video/webm';
+            const fileExtension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+            try {
+                mediaRecorder = new MediaRecorder(stream, { mimeType });
+                mediaRecorder.ondataavailable = e => {
+                    if (e.data.size > 0) recordedChunks.push(e.data);
+                };
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, { type: mimeType });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `snapcam-video-${Date.now()}.${fileExtension}`;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    console.log('Video saved');
+                };
+                mediaRecorder.onerror = e => {
+                    console.error('Recording error:', e);
+                    loading.innerHTML = 'Error: Could not record video. <button onclick="startRecording()">Retry</button>';
+                    setTimeout(() => { loading.style.display = 'none'; }, 3000);
+                };
+                mediaRecorder.start();
+                actionButton.classList.add('recording');
+                actionButton.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="6" width="12" height="12"/></svg>';
+                actionButton.setAttribute('aria-label', 'Stop recording');
+                recordingIndicator.style.display = 'flex';
+                recordingStartTime = Date.now();
+                updateTimer();
+                if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
+                console.log('Recording started');
+                setTimeout(() => {
+                    if (mediaRecorder?.state === 'recording') stopRecording();
+                }, maxRecordingTime * 1000);
+            } catch (err) {
+                console.error('Recording initialization failed:', err);
+                loading.innerHTML = 'Error: Video recording not supported in this browser.';
                 setTimeout(() => { loading.style.display = 'none'; }, 3000);
-            };
-            mediaRecorder.start();
-            actionButton.classList.add('recording');
-            actionButton.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="6" width="12" height="12"/></svg>';
-            actionButton.setAttribute('aria-label', 'Stop recording');
-            recordingIndicator.style.display = 'flex';
-            recordingStartTime = Date.now();
-            updateTimer();
-            if ('vibrate' in navigator) navigator.vibrate([100, 50, 100]);
-            console.log('Recording started');
-            setTimeout(() => {
-                if (mediaRecorder?.state === 'recording') stopRecording();
-            }, maxRecordingTime * 1000);
+            }
         }
 
         function stopRecording() {
@@ -696,25 +708,32 @@
         }
 
         // Action button interactions
-        actionButton.addEventListener('click', () => {
-            if (!actionButton.classList.contains('recording')) {
-                capturePhoto();
-            }
-        });
-
-        actionButton.addEventListener('touchstart', e => {
+        let pointerDownTime = 0;
+        actionButton.addEventListener('pointerdown', e => {
             e.preventDefault();
+            isHolding = true;
+            pointerDownTime = Date.now();
             holdTimer = setTimeout(() => {
-                if (!actionButton.classList.contains('recording')) {
+                if (isHolding && !actionButton.classList.contains('recording')) {
                     startRecording();
-                } else {
+                } else if (isHolding) {
                     stopRecording();
                 }
             }, 300);
         });
 
-        actionButton.addEventListener('touchend', e => {
+        actionButton.addEventListener('pointerup', e => {
             e.preventDefault();
+            isHolding = false;
+            clearTimeout(holdTimer);
+            if (Date.now() - pointerDownTime < 300 && !actionButton.classList.contains('recording')) {
+                capturePhoto();
+            }
+        });
+
+        actionButton.addEventListener('pointercancel', e => {
+            e.preventDefault();
+            isHolding = false;
             clearTimeout(holdTimer);
         });
 
@@ -755,7 +774,9 @@
             if (e.key >= '1' && e.key <= '7') {
                 toggleFilter(`filter${e.key}`);
             } else if (e.key === ' ') {
-                capturePhoto();
+                if (!actionButton.classList.contains('recording')) {
+                    capturePhoto();
+                }
             } else if (e.key.toLowerCase() === 'r') {
                 if (!actionButton.classList.contains('recording')) {
                     startRecording();
@@ -771,6 +792,14 @@
             if (e.touches.length > 1) e.preventDefault();
         }, { passive: false });
 
+        // Handle orientation and resize
+        window.addEventListener('resize', () => {
+            if (video.srcObject) {
+                canvas.width = Math.min(video.videoWidth, 1280);
+                canvas.height = Math.min(video.videoHeight, 720);
+            }
+        });
+
         // Initialize
         if (controls && filterControls) {
             console.log('Initializing SnapCam');
@@ -781,4 +810,3 @@
     </script>
 </body>
 </html>
-
